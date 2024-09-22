@@ -3,17 +3,17 @@ package me.aanchev.belotej.engine;
 import me.aanchev.belotej.domain.*;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static io.micronaut.core.util.CollectionUtils.concat;
+import static java.util.Collections.shuffle;
 import static java.util.Comparator.comparingInt;
 import static me.aanchev.belotej.domain.Card.*;
+import static me.aanchev.belotej.domain.PassCall.PASS;
 import static me.aanchev.belotej.engine.GameState.clear;
 
 @Service
-public class GameEngine {
+class GameEngine {
 
     public void nextTrick(GameState state) {
         if (state.getTrick().isEmpty()) return;
@@ -26,8 +26,6 @@ public class GameEngine {
         state.getScore().add(trickPoints, winner);
 
         moveTrickCardsToWinPiles(state, winner);
-
-        state.clearTrick();
     }
 
     public void nextRound(GameState state) {
@@ -178,5 +176,108 @@ public class GameEngine {
     protected void moveTrickCardsToWinPiles(GameState state, RelPlayer winner) {
         // TODO: Apply the "shuffling strategy" onCollect
         state.getWinPiles().get(winner).addAll(state.getTrick().toList());
+        state.getTrick().reset();
+    }
+
+
+
+    /// Playing ///
+
+
+    public void play(GameState state, RelPlayer position, GameAction action) {
+        RelPlayer current = state.getNext();
+        if (current != position) throw new IllegalStateException("Not your turn!");
+
+        // If it's bidding time
+        if (state.getTrump() == null) {
+            if (!(action instanceof TrumpCall)) throw new IllegalArgumentException("Can only make bids in the bidding phase!");
+            var winningCall = state.getWinningCall();
+            if (action != PASS) {
+                // Check if going up
+                if (BID_COMPARATOR.compare(winningCall, (TrumpCall) action) <= 0) {
+                    throw new IllegalArgumentException("Cannot place weaker bids. Already at: " + winningCall);
+                }
+            }
+
+            state.getCalls().get(position).add((TrumpCall) action);
+            var next = current.next();
+            state.setNext(next);
+            if (action != PASS) {
+                state.setWinningCall((TrumpCall) action);
+                state.setChallengers(Team.of(position));
+            }
+
+            // If roundabout is complete
+            if (state.getCalls().get(next).getLast() != winningCall) return;
+
+            if (winningCall == PASS) { // everyone passed
+                foldRound(state);
+                return;
+            }
+
+            state.setTrump((Trump) winningCall);
+            state.setWinningCall(null);
+            dealCards(state, 3);
+            state.setNext(state.getDealer().next());
+
+            return;
+        }
+
+        // It's trick time
+
+    }
+
+    public static final Comparator<TrumpCall> BID_COMPARATOR = comparingInt(bid ->
+            - (bid == null || bid == PASS ? -1 : ((Trump) bid).ordinal())
+    );
+
+
+    public void foldRound(GameState state) {
+        moveHandCardsToDeck(state);
+        clear(state.getCalls());
+        state.setWinningCall(null);
+        state.setChallengers(null);
+        state.setTrump(null);
+
+        state.setDealer(state.getDealer().next());
+        state.setNext(state.getDealer().next());
+        dealCards(state, 3);
+        dealCards(state, 2);
+    }
+
+    protected void moveHandCardsToDeck(GameState state) {
+        // TODO: Apply the "shuffling strategy" onAllPass
+        var hands = state.getHands().toList();
+        shuffle(hands, state.getRandomSeed());
+        hands.forEach(state.getDeck()::addAll);
+
+        cutDeck(state, state.getRandomSeed().nextInt(state.getDeck().size()));
+
+        clear(state.getHands());
+    }
+
+
+    public void cutDeck(GameState state, int pivot) {
+        var deck = state.getDeck();
+        var copy = new ArrayList<>(deck);
+        deck.clear();
+        deck.addAll(copy.subList(0, pivot));
+        deck.addAll(copy.subList(pivot, copy.size()));
+    }
+
+    public void dealCards(GameState state, int amount) {
+        var next = state.getDealer().next();
+        for (int i = 0; i < 4; i++) {
+            var cards = takeFromDeck(state, amount);
+            state.getHands().get(next).addAll(cards);
+            next = next.next();
+        }
+    }
+
+    public List<Card> takeFromDeck(GameState state, int amount) {
+        var taken = state.getDeck().subList(state.getDeck().size() - amount, state.getDeck().size());
+        var copy = new ArrayList<>(taken);
+        taken.clear();
+        return copy;
     }
 }

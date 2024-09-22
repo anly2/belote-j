@@ -1,0 +1,86 @@
+package me.aanchev.belotej.engine;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import me.aanchev.belotej.domain.*;
+import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.NoSuchElementException;
+
+import static me.aanchev.belotej.domain.PassCall.PASS;
+import static me.aanchev.belotej.domain.WNES.wnes;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class GameService {
+    private final GameLobby lobby;
+    private final GameEngine engine;
+
+    public PlayerState getState(String player) {
+        var session = lobby.getGameSession(player);
+        if (session == null) return null;
+
+        return getPlayerState(session.getValue(), session.getKey());
+    }
+
+    protected PlayerState getPlayerState(GameState gameState, RelPlayer position) {
+        int rotation = position.getIndex();
+        return PlayerState.builder()
+                .dealer(rotate(gameState.getDealer(), rotation))
+                .hand(gameState.getHands().get(position))
+                .calls(rotate(gameState.getCalls(), rotation))
+                .trump(gameState.getTrump())
+                .challengers(rotate(gameState.getChallengers(), rotation))
+                .trick(rotate(gameState.getTrick(), rotation))
+                .claims(rotate(gameState.getCombinations(), rotation)
+                        .map(cs -> cs.stream().map(Map.Entry::getKey).toList()))
+                .score(rotate(gameState.getScore(), rotation))
+                .gameScore(rotate(gameState.getGameScore(), rotation))
+                .build();
+    }
+
+
+
+    public void play(String player, GameAction action) throws IllegalArgumentException, IllegalStateException {
+        var session = lobby.getGameSession(player);
+        if (session == null) throw new NoSuchElementException("Player '"+player+"' is not part of a game!");
+
+        engine.play(session.getValue(), session.getKey(), action);
+    }
+
+
+    public static RelPlayer rotate(RelPlayer source, int offset) {
+        return RelPlayer.get(source.getIndex() + offset);
+    }
+
+
+    public static Team rotate(Team source, int rotation) {
+        return switch (rotation % 4) {
+            case 0, 2 -> source;
+            case 1, 3 -> Team.other(source);
+            default -> null; //not possible
+        };
+    }
+
+    public static <E> WNES<E> rotate(WNES<E> source, int rotation) {
+        return switch (rotation % 4) {
+            case 0 -> wnes(source.getW(), source.getN(), source.getE(), source.getS());
+            case 1 -> wnes(source.getN(), source.getE(), source.getS(), source.getW());
+            case 2 -> wnes(source.getE(), source.getS(), source.getW(), source.getN());
+            case 3 -> wnes(source.getS(), source.getW(), source.getN(), source.getE());
+            default -> null; //not possible
+        };
+    }
+
+
+    public static Scores rotate(Scores source, int rotation) {
+        return switch (rotation % 4) {
+            case 0, 2 -> new Scores(source.getUs(), source.getThem());
+            case 1, 3 -> new Scores(source.getThem(), source.getUs());
+            default -> null; //not possible
+        };
+    }
+}

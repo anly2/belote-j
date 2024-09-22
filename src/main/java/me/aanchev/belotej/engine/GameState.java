@@ -8,7 +8,6 @@ import me.aanchev.belotej.domain.*;
 import java.util.*;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.shuffle;
 import static me.aanchev.belotej.domain.RelPlayer.e;
 import static me.aanchev.belotej.domain.RelPlayer.s;
 import static me.aanchev.belotej.domain.WNES.wnes;
@@ -16,10 +15,12 @@ import static me.aanchev.belotej.domain.WNES.wnes;
 @Data
 @AllArgsConstructor
 @RequiredArgsConstructor
-public class GameState {
+class GameState {
     private final String gameId;
-    private final List<String> players;
     private final List<Card> initialDeck;
+    private final Random randomSeed;
+
+    private List<String> playerNames = new ArrayList<>(asList(null, null, null, null));
 
     private List<Card> deck = new ArrayList<>(32);
 
@@ -29,6 +30,7 @@ public class GameState {
     private WNES<List<Card>> hands = wnes(() -> new ArrayList<>(8));
 
     private WNES<List<TrumpCall>> calls = wnes(() -> new ArrayList<>(1));
+    private TrumpCall winningCall = null;
     private Trump trump = null;
     private Team challengers = null;
 
@@ -46,11 +48,11 @@ public class GameState {
     public void resetGame() {
         deck.clear();
         deck.addAll(initialDeck);
-        clearTrick();
+        clearRound();
         gameScore.reset();
     }
 
-    public void clearTrick() {
+    public void clearRound() {
         clear(hands);
         clear(calls);
 
@@ -70,21 +72,13 @@ public class GameState {
     }
 
 
-    public static GameState newGame(long seed) {
-        var deck = new ArrayList<>(asList(Card.values()));
-        shuffle(deck, new Random(seed));
-        return newGame(deck);
-    }
     public static GameState newGame(List<Card> deck) {
-        return newGame(deck, "South");
+        return newGame(deck, new Random());
     }
-    public static GameState newGame(List<Card> deck, String playerSouthName) {
-        return newGame(deck, playerSouthName, UUID.randomUUID().toString());
+    public static GameState newGame(List<Card> deck, Random seed) {
+        return newGame(deck, seed, UUID.randomUUID().toString());
     }
-    public static GameState newGame(List<Card> deck, String playerSouthName, String gameId) {
-        return newGame(deck, List.of(playerSouthName, "West", "North", "East"), gameId);
-    }
-    public static GameState newGame(List<Card> deck, List<String> playerNames, String gameId) {
-        return new GameState(gameId, playerNames, deck);
+    public static GameState newGame(List<Card> deck, Random seed, String gameId) {
+        return new GameState(gameId, deck, seed);
     }
 }

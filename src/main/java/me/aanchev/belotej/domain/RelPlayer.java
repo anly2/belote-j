@@ -12,6 +12,25 @@ public enum RelPlayer {
         };
     }
 
+    public final RelPlayer previous() {
+        return switch (this) {
+            case s -> e;
+            case w -> s;
+            case n -> w;
+            case e -> n;
+        };
+    }
+
+
+    public final int getIndex() {
+        return switch (this) {
+            case s -> 0;
+            case w -> 1;
+            case n -> 2;
+            case e -> 3;
+        };
+    }
+
     public static RelPlayer get(int index) {
         return switch (index % 4) {
             case 0 -> s;

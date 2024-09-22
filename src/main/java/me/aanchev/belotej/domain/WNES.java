@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Data
@@ -58,6 +59,17 @@ public class WNES<T> {
         return r;
     }
 
+    public final <R> WNES<R> map(Function<T, R> mapper) {
+        return new WNES<>(
+                mapper.apply(w),
+                mapper.apply(n),
+                mapper.apply(e),
+                mapper.apply(s)
+        );
+    }
+
+
+
     public static <E> WNES<E> wnes() {
         return new WNES<>();
     }
@@ -66,6 +78,10 @@ public class WNES<T> {
     }
     public static <E> WNES<E> wnes(E w, E n, E e, E s) {
         return new WNES<>(w, n, e, s);
+    }
+
+    public static <E> WNES<E> wnes(WNES<E> source) {
+        return new WNES<>(source.w, source.n, source.e, source.s);
     }
     public static <E> WNES<E> wnes(Supplier<E> factory) {
         return new WNES<>(factory.get(), factory.get(), factory.get(), factory.get());
