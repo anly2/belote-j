@@ -1,6 +1,7 @@
 package me.aanchev.belotej.engine;
 
 import me.aanchev.belotej.domain.*;
+import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
@@ -11,11 +12,10 @@ import static java.util.Comparator.comparingInt;
 import static me.aanchev.belotej.domain.Card.*;
 import static me.aanchev.belotej.engine.GameState.clear;
 
+@Service
 public class GameEngine {
-    private GameEngine() {}
 
-
-    public static void nextTrick(GameState state) {
+    public void nextTrick(GameState state) {
         if (state.getTrick().isEmpty()) return;
 
         RelPlayer winner = getTrickWinner(state);
@@ -30,7 +30,7 @@ public class GameEngine {
         state.clearTrick();
     }
 
-    public static void nextRound(GameState state) {
+    public void nextRound(GameState state) {
         nextTrick(state);
 
         state.setDealer(state.getDealer().next()); // shift the dealer to the next
@@ -38,7 +38,7 @@ public class GameEngine {
         updateGameScore(state);
     }
 
-    private static void updateGameScore(GameState state) {
+    protected void updateGameScore(GameState state) {
         Scores score = state.getScore();
         int pointsUs = roundScoreToGameScore(score.getUs(), state.getTrump(), score.getThem());
         int pointsThem = roundScoreToGameScore(score.getThem(), state.getTrump(), score.getUs());
@@ -71,7 +71,7 @@ public class GameEngine {
         clear(state.getCombinations());
     }
 
-    public static int roundScoreToGameScore(int points, Trump trump, int otherPoints) {
+    public int roundScoreToGameScore(int points, Trump trump, int otherPoints) {
         int p = points / 10;
         int r = points % 10;
         int roundingLimit = switch (trump) {
@@ -85,7 +85,7 @@ public class GameEngine {
         return p;
     }
 
-    private static Scores computeDeclarationMatchPoints(GameState state) {
+    protected Scores computeDeclarationMatchPoints(GameState state) {
         var claims = state.getCombinations();
         var claimsUs = concat(claims.getN(), claims.getS());
         claimsUs.sort(CLAIMS_COMPARATOR);
@@ -110,7 +110,7 @@ public class GameEngine {
         );
     }
 
-    private static final Comparator<Map.Entry<Claim, List<Card>>> CLAIMS_COMPARATOR = comparingInt(claim ->
+    public static final Comparator<Map.Entry<Claim, List<Card>>> CLAIMS_COMPARATOR = comparingInt(claim ->
         - (claim == null ? -1 : switch (claim.getKey()) {
             case BELOTE -> -1;
             case TIERCE -> 10;
@@ -122,12 +122,12 @@ public class GameEngine {
         } + getPower(claim.getValue().get(0), Trump.A))
     );
 
-    private static int computeDeclarationMatchPoints(List<Map.Entry<Claim, List<Card>>> declarations) {
+    protected int computeDeclarationMatchPoints(List<Map.Entry<Claim, List<Card>>> declarations) {
         return declarations.stream().mapToInt(declaration -> Claim.getPoints(declaration.getKey())).sum();
     }
 
 
-    public static RelPlayer getTrickWinner(GameState state) {
+    public RelPlayer getTrickWinner(GameState state) {
         var next = state.getNext(); // and initial
         var trick = state.getTrick();
         var winnerCard = trick.get(next);
@@ -143,7 +143,7 @@ public class GameEngine {
         return winner;
     }
 
-    private static boolean winsOver(Card a, Card b, Trump trump) {
+    public boolean winsOver(Card a, Card b, Trump trump) {
         Trump suitA = getSuit(a);
         Trump suitB = getSuit(b);
         if (suitA != suitB) {
@@ -155,7 +155,8 @@ public class GameEngine {
         return getPower(a, trump) > getPower(b, trump);
     }
 
-    public static int getTrickPoints(GameState state) {
+
+    public int getTrickPoints(GameState state) {
         // Simply count
         WNES<Card> trick = state.getTrick();
         Trump trump = state.getTrump();
@@ -174,7 +175,7 @@ public class GameEngine {
     }
 
 
-    private static void moveTrickCardsToWinPiles(GameState state, RelPlayer winner) {
+    protected void moveTrickCardsToWinPiles(GameState state, RelPlayer winner) {
         // TODO: Apply the "shuffling strategy" onCollect
         state.getWinPiles().get(winner).addAll(state.getTrick().toList());
     }
