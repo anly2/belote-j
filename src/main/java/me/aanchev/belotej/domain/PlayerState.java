@@ -1,5 +1,6 @@
 package me.aanchev.belotej.domain;
 
+import io.micronaut.serde.annotation.Serdeable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Serdeable()
 public class PlayerState {
     private RelPlayer dealer;
 

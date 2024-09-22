@@ -1,5 +1,8 @@
 package me.aanchev.belotej.domain;
 
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 public enum RelPlayer {
     s, w, n, e;
 

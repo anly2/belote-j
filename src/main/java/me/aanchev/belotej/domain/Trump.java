@@ -1,5 +1,8 @@
 package me.aanchev.belotej.domain;
 
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 public enum Trump implements TrumpCall {
     C, D, H, S, A, J;
 

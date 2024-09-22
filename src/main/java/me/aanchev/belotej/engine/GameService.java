@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
 import static me.aanchev.belotej.domain.WNES.wnes;
+import static me.aanchev.utils.LatchUtils.await;
 
 @Slf4j
 @Service
@@ -67,7 +68,7 @@ public class GameService {
         play(player, action, true);
     }
 
-    protected void play(String player, GameAction action, boolean wait) throws IllegalArgumentException, IllegalStateException {
+    public void play(String player, GameAction action, boolean wait) throws IllegalArgumentException, IllegalStateException {
         var session = lobby.getGameSession(player);
         if (session == null) throw new NoSuchElementException("Player '"+player+"' is not part of a game!");
 
@@ -92,18 +93,6 @@ public class GameService {
         var nextPlayer = nextPlayerIndex < game.getPlayerNames().size() ? game.getPlayerNames().get(nextPlayerIndex) : null;
         return nextPlayer;
     }
-
-    private static void await(CountDownLatch latch) {
-        try {
-            if (!latch.await(10, java.util.concurrent.TimeUnit.MINUTES)) {
-                throw new IllegalStateException("Timed out");
-            }
-        }
-        catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 
 
     public static RelPlayer rotate(RelPlayer source, int offset) {

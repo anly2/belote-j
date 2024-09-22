@@ -1,0 +1,17 @@
+
+GET http://localhost:8080/aa/game/create/?seed=12345
+
+> {% client.global.set("gameid", response.body); %}
+
+###
+GET http://localhost:8080/bot-west/game/join/{{gameid}}
+###
+GET http://localhost:8080/yy/game/join/{{gameid}}
+###
+GET http://localhost:8080/bot-east/game/join/{{gameid}}
+
+###
+GET http://localhost:8080/aa/state
+
+###
+GET http://localhost:8080/yy/state

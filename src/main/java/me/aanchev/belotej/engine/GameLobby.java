@@ -27,6 +27,7 @@ public class GameLobby {
     public String createGame(String player, @Nullable String seed) {
         GameState game = createGame(seed);
         addToGame(game, player);
+        log.info("Player '{}' created an new game: {}", player, game.getGameId());
         return game.getGameId();
     }
 
@@ -35,6 +36,7 @@ public class GameLobby {
                 .orElseThrow(() -> new IllegalArgumentException("No such game: " + gameId));
         var game = session.getValue();
         addToGame(game, player);
+        log.info("Player '{}' joined game: {}", player, game.getGameId());
         return game.getGameId();
     }
 
@@ -49,6 +51,8 @@ public class GameLobby {
 
 
     protected GameState createGame(@Nullable String seed) {
+        if (seed == null) seed = String.valueOf(new Random().nextLong());
+
         try {
             return createGame(Long.parseLong(seed));
         } catch (Exception ignore) {}

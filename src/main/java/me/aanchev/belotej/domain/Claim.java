@@ -1,5 +1,8 @@
 package me.aanchev.belotej.domain;
 
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 public enum Claim { // Declarations / Combinations
     TIERCE, // 20
     QUARTE, // 50

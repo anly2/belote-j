@@ -1,7 +1,10 @@
 package me.aanchev.belotej.domain;
 
+import io.micronaut.serde.annotation.Serdeable;
+
 import java.util.Objects;
 
+@Serdeable
 public enum Card implements GameAction {
     C7, C8, C9, CJ, CQ, CK, C10, CA,
     D7, D8, D9, DJ, DQ, DK, D10, DA,
