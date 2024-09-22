@@ -5,11 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import me.aanchev.belotej.domain.*;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 
-import static me.aanchev.belotej.domain.PassCall.PASS;
 import static me.aanchev.belotej.domain.WNES.wnes;
 
 @Slf4j
@@ -19,9 +19,25 @@ public class GameService {
     private final GameLobby lobby;
     private final GameEngine engine;
 
-    public PlayerState getState(String player) {
+    private Map<String, CountDownLatch> waiters = new ConcurrentHashMap<>(4);
+
+
+    public PlayerState getStateNow(String player) {
+        return getState(player, false);
+    }
+    public PlayerState getStateWhenTheirTurn(String player) {
+        return getState(player, true);
+    }
+    public PlayerState getState(String player, boolean waitForTurn) {
         var session = lobby.getGameSession(player);
         if (session == null) return null;
+
+        if (waitForTurn && !player.equals(getNextPlayerName(session.getValue()))) {
+
+            var latch = new CountDownLatch(1);
+            waiters.put(player, latch);
+            await(latch);
+        }
 
         return getPlayerState(session.getValue(), session.getKey());
     }
@@ -45,11 +61,49 @@ public class GameService {
 
 
     public void play(String player, GameAction action) throws IllegalArgumentException, IllegalStateException {
+        play(player, action, false);
+    }
+    public void playAndWait(String player, GameAction action) throws IllegalArgumentException, IllegalStateException {
+        play(player, action, true);
+    }
+
+    protected void play(String player, GameAction action, boolean wait) throws IllegalArgumentException, IllegalStateException {
         var session = lobby.getGameSession(player);
         if (session == null) throw new NoSuchElementException("Player '"+player+"' is not part of a game!");
 
-        engine.play(session.getValue(), session.getKey(), action);
+        GameState game = session.getValue();
+        var latch = wait ? new CountDownLatch(1) : null;
+        synchronized (game) {
+            engine.play(game, session.getKey(), action);
+
+            String nextPlayer = getNextPlayerName(game);
+            var nextPlayerLatch = nextPlayer != null ? waiters.get(nextPlayer) : null;
+            if (nextPlayerLatch != null) nextPlayerLatch.countDown();
+
+            if (wait) waiters.put(player, latch);
+            else waiters.remove(player);
+        }
+
+        if (wait) await(latch);
     }
+
+    private static String getNextPlayerName(GameState game) {
+        var nextPlayerIndex = game.getNext().getIndex();
+        var nextPlayer = nextPlayerIndex < game.getPlayerNames().size() ? game.getPlayerNames().get(nextPlayerIndex) : null;
+        return nextPlayer;
+    }
+
+    private static void await(CountDownLatch latch) {
+        try {
+            if (!latch.await(10, java.util.concurrent.TimeUnit.MINUTES)) {
+                throw new IllegalStateException("Timed out");
+            }
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
 
     public static RelPlayer rotate(RelPlayer source, int offset) {
