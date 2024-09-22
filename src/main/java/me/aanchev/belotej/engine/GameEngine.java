@@ -16,10 +16,8 @@ import static me.aanchev.belotej.engine.GameState.clear;
 @Service
 class GameEngine {
 
-    public void nextTrick(GameState state) {
-        if (state.getTrick().isEmpty()) return;
-
-        RelPlayer winner = getTrickWinner(state);
+    public RelPlayer nextTrick(GameState state) {
+        var winner = getTrickWinner(state);
         state.setTrickInitiator(winner);
         state.setNext(winner);
 
@@ -28,11 +26,14 @@ class GameEngine {
         state.getScore().add(trickPoints, winner);
 
         moveTrickCardsToWinPiles(state, winner);
+        return winner;
     }
 
     public void nextRound(GameState state) {
-        nextTrick(state);
+        var winner = nextTrick(state);
+        state.getScore().add(10, winner);
 
+        state.setTrickInitiator(null);
         state.setDealer(state.getDealer().next()); // shift the dealer to the next
         state.setNext(state.getDealer().next());   // shift the next to the next of the dealer (yet again)
         updateGameScore(state);
@@ -159,20 +160,12 @@ class GameEngine {
 
     public int getTrickPoints(GameState state) {
         // Simply count
-        WNES<Card> trick = state.getTrick();
-        Trump trump = state.getTrump();
-        int points = getPoints(trick.getW(), trump)
+        var trick = state.getTrick();
+        var trump = state.getTrump();
+        return getPoints(trick.getW(), trump)
                 + getPoints(trick.getN(), trump)
                 + getPoints(trick.getE(), trump)
                 + getPoints(trick.getS(), trump);
-
-        // Add 10 if is the last trick of the round
-        WNES<List<Card>> hands = state.getHands();
-        if (hands.getW().isEmpty() && hands.getN().isEmpty() && hands.getE().isEmpty() && hands.getS().isEmpty()) {
-            points += 10;
-        }
-
-        return points;
     }
 
 
@@ -238,8 +231,8 @@ class GameEngine {
         }
 
         var trick = state.getTrick();
+        var initiator = state.getTrickInitiator();
         if (!trick.isEmpty()) {
-            var initiator = state.getTrickInitiator();
             var askedCard = trick.get(initiator);
             var askedSuit = getSuit(askedCard);
             var suit = getSuit(card);
@@ -271,6 +264,18 @@ class GameEngine {
 
         trick.set(position, card);
         hand.remove(card);
+
+        var next = current.next();
+        state.setNext(next);
+
+        if (next == initiator) {
+            if (hand.isEmpty() && state.getHands().get(position.next()).isEmpty()) {
+                nextRound(state);
+                return;
+            }
+
+            nextTrick(state);
+        }
     }
 
     public static final Comparator<TrumpCall> BID_COMPARATOR = comparingInt(bid ->
