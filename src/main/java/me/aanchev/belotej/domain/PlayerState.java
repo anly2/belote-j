@@ -1,5 +1,6 @@
 package me.aanchev.belotej.domain;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,9 +13,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Serdeable()
+@Serdeable
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PlayerState {
     private RelPlayer dealer;
+    private RelPlayer playerInTurn;
 
     private List<Card> hand;
 

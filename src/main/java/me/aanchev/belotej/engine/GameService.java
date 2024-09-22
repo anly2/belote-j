@@ -47,6 +47,7 @@ public class GameService {
         int rotation = position.getIndex();
         return PlayerState.builder()
                 .dealer(rotate(gameState.getDealer(), rotation))
+                .playerInTurn(rotate(gameState.getNext(), rotation))
                 .hand(gameState.getHands().get(position))
                 .calls(rotate(gameState.getCalls(), rotation))
                 .trump(gameState.getTrump())

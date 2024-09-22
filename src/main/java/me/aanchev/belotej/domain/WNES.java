@@ -1,8 +1,8 @@
 package me.aanchev.belotej.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.micronaut.serde.annotation.Serdeable;
-import io.micronaut.serde.config.naming.LowerCamelCaseStrategy;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 @NoArgsConstructor
 @AllArgsConstructor
 @Serdeable
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class WNES<T> {
     private T w;
     private T n;
@@ -30,6 +31,7 @@ public class WNES<T> {
         s = null;
     }
 
+    @JsonIgnore
     public final boolean isEmpty() {
         return w == null && n == null && e == null && s == null;
     }
