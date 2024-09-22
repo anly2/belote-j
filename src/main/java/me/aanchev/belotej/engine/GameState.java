@@ -36,6 +36,7 @@ class GameState {
 
 
     private WNES<Card> trick = wnes();
+    private RelPlayer trickInitiator = null;
     private WNES<List<Card>> winPiles = wnes(() -> new ArrayList<>(32));
     private WNES<List<Map.Entry<Claim, List<Card>>>> combinations = wnes(() -> new ArrayList<>(2));
 

@@ -24,4 +24,8 @@ public enum Team {
             case THEM -> US;
         };
     }
+
+    public static boolean sameTeam(RelPlayer a, RelPlayer b) {
+        return Team.of(a) == Team.of(b);
+    }
 }

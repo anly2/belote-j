@@ -19,19 +19,19 @@ public class WNES<T> {
     private T s;
 
 
-    public void reset() {
+    public final void reset() {
         w = null;
         n = null;
         e = null;
         s = null;
     }
 
-    public boolean isEmpty() {
+    public final boolean isEmpty() {
         return w == null && n == null && e == null && s == null;
     }
 
 
-    public T get(int index) {
+    public final T get(int index) {
         return switch (index % 4) {
             case 0 -> s;
             case 1 -> w;
@@ -41,8 +41,8 @@ public class WNES<T> {
         };
     }
 
-    public T get(RelPlayer winner) {
-        return switch (winner) {
+    public final T get(RelPlayer player) {
+        return switch (player) {
             case s -> this.s;
             case w -> this.w;
             case n -> this.n;
@@ -50,7 +50,16 @@ public class WNES<T> {
         };
     }
 
-    public List<T> toList() {
+    public final void set(RelPlayer player, T value) {
+        switch (player) {
+            case s -> this.s = value;
+            case w -> this.w = value;
+            case n -> this.n = value;
+            case e -> this.e = value;
+        };
+    }
+
+    public final List<T> toList() {
         List<T> r = new ArrayList<>(s == null ? 3 : 4);
         if (w != null) r.add(w);
         if (n != null) r.add(n);

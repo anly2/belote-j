@@ -10,6 +10,7 @@ import static java.util.Collections.shuffle;
 import static java.util.Comparator.comparingInt;
 import static me.aanchev.belotej.domain.Card.*;
 import static me.aanchev.belotej.domain.PassCall.PASS;
+import static me.aanchev.belotej.domain.Team.sameTeam;
 import static me.aanchev.belotej.engine.GameState.clear;
 
 @Service
@@ -19,6 +20,7 @@ class GameEngine {
         if (state.getTrick().isEmpty()) return;
 
         RelPlayer winner = getTrickWinner(state);
+        state.setTrickInitiator(winner);
         state.setNext(winner);
 
         int trickPoints = getTrickPoints(state);
@@ -126,13 +128,14 @@ class GameEngine {
 
 
     public RelPlayer getTrickWinner(GameState state) {
-        var next = state.getNext(); // and initial
+        var next = state.getTrickInitiator();
         var trick = state.getTrick();
         var winnerCard = trick.get(next);
         var winner = next;
         for (int i = 0; i < 3; i++) {
             next = next.next();
             Card nextCard = trick.get(next);
+            if (nextCard == null) break;
             if (winsOver(nextCard, winnerCard, state.getTrump())) {
                 winner = next;
                 winnerCard = nextCard;
@@ -218,13 +221,56 @@ class GameEngine {
             state.setTrump((Trump) winningCall);
             state.setWinningCall(null);
             dealCards(state, 3);
-            state.setNext(state.getDealer().next());
+            RelPlayer trickInitiator = state.getDealer().next();
+            state.setTrickInitiator(trickInitiator);
+            state.setNext(trickInitiator);
 
             return;
         }
 
+
         // It's trick time
 
+        Card card = (Card) action;
+        var hand = state.getHands().get(position);
+        if (!hand.contains(card)) {
+            throw new IllegalStateException("You cannot play the card '" + card + "' because you do not have it in your hand!");
+        }
+
+        var trick = state.getTrick();
+        if (!trick.isEmpty()) {
+            var initiator = state.getTrickInitiator();
+            var askedCard = trick.get(initiator);
+            var askedSuit = getSuit(askedCard);
+            var suit = getSuit(card);
+            var trump = state.getTrump();
+            if (askedSuit == suit) {
+                if (Trump.isTrump(askedSuit, trump)) {
+                    var powerThreshold = getPower(askedCard, trump);
+                    if (getPower(card, trump) <= powerThreshold) {
+                        if (hand.stream().anyMatch(c -> askedSuit == getSuit(c) && getPower(c, trump) > powerThreshold)) {
+                            throw new IllegalArgumentException("You have a card with which to raise but you are not playing it!");
+                        }
+                    }
+                }
+            } else {
+                if (hand.stream().anyMatch(c -> askedSuit == getSuit(c))) {
+                    throw new IllegalArgumentException("You have a card from the asked suit but you are not playing it!");
+                }
+                if (!Trump.isTrump(askedSuit, trump) && !Trump.isTrump(suit, trump)) {
+                    if (!sameTeam(getTrickWinner(state), position)) {
+                        if (hand.stream().anyMatch(c -> isTrump(c, trump))) {
+                            throw new IllegalArgumentException("You have a trump but you are not playing it!");
+                        }
+                    }
+                }
+            }
+        }
+
+        state.getCombinations().get(position).addAll(findClaims(hand, card));
+
+        trick.set(position, card);
+        hand.remove(card);
     }
 
     public static final Comparator<TrumpCall> BID_COMPARATOR = comparingInt(bid ->
@@ -279,5 +325,10 @@ class GameEngine {
         var copy = new ArrayList<>(taken);
         taken.clear();
         return copy;
+    }
+
+
+    public List<Map.Entry<Claim, List<Card>>> findClaims(List<Card> hand, Card card) {
+        return List.of(); // FIXME
     }
 }
