@@ -10,4 +10,15 @@ public enum Trump implements TrumpCall {
         if (u.startsWith("NO")) return A;
         return Trump.valueOf(u.substring(0, 1));
     }
+
+
+
+    public boolean isTrump(Trump trump) {
+        return isTrump(this, trump);
+    }
+    public static boolean isTrump(Trump suit, Trump trump) {
+        if (trump == Trump.A) return false;
+        if (trump == Trump.J) return true;
+        return trump == suit;
+    }
 }

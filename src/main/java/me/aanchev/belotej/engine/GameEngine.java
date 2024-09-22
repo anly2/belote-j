@@ -2,7 +2,6 @@ package me.aanchev.belotej.engine;
 
 import me.aanchev.belotej.domain.*;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +18,7 @@ public class GameEngine {
     public static void nextTrick(GameState state) {
         if (state.getTrick().isEmpty()) return;
 
-        RelPlayer winner = getTrickWinner(state.getTrick());
+        RelPlayer winner = getTrickWinner(state);
         state.setNext(winner);
 
         int trickPoints = getTrickPoints(state);
@@ -128,8 +127,32 @@ public class GameEngine {
     }
 
 
-    public static RelPlayer getTrickWinner(WNES<Card> trick) {
-        return null; //FIXME
+    public static RelPlayer getTrickWinner(GameState state) {
+        var next = state.getNext(); // and initial
+        var trick = state.getTrick();
+        var winnerCard = trick.get(next);
+        var winner = next;
+        for (int i = 0; i < 3; i++) {
+            next = next.next();
+            Card nextCard = trick.get(next);
+            if (winsOver(nextCard, winnerCard, state.getTrump())) {
+                winner = next;
+                winnerCard = nextCard;
+            }
+        }
+        return winner;
+    }
+
+    private static boolean winsOver(Card a, Card b, Trump trump) {
+        Trump suitA = getSuit(a);
+        Trump suitB = getSuit(b);
+        if (suitA != suitB) {
+            if (Trump.isTrump(suitB, trump)) return false; // cant beat a trump of a different suite, even if a trump itself
+            if (Trump.isTrump(suitA, trump)) return true; // A is a trump whilst B is not
+            return false;
+        }
+        // same suit semantics
+        return getPower(a, trump) > getPower(b, trump);
     }
 
     public static int getTrickPoints(GameState state) {
