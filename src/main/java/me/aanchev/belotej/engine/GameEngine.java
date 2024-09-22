@@ -3,15 +3,20 @@ package me.aanchev.belotej.engine;
 import me.aanchev.belotej.domain.*;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 import static io.micronaut.core.util.CollectionUtils.concat;
+import static java.util.Arrays.asList;
 import static java.util.Collections.shuffle;
 import static java.util.Comparator.comparingInt;
 import static me.aanchev.belotej.domain.Card.*;
 import static me.aanchev.belotej.domain.PassCall.PASS;
 import static me.aanchev.belotej.domain.Team.sameTeam;
 import static me.aanchev.belotej.engine.GameState.clear;
+import static me.aanchev.utils.DataUtils.pair;
 
 @Service
 class GameEngine {
@@ -230,13 +235,13 @@ class GameEngine {
             throw new IllegalStateException("You cannot play the card '" + card + "' because you do not have it in your hand!");
         }
 
+        var trump = state.getTrump();
         var trick = state.getTrick();
         var initiator = state.getTrickInitiator();
         if (!trick.isEmpty()) {
             var askedCard = trick.get(initiator);
             var askedSuit = getSuit(askedCard);
             var suit = getSuit(card);
-            var trump = state.getTrump();
             if (askedSuit == suit) {
                 if (Trump.isTrump(askedSuit, trump)) {
                     var powerThreshold = getPower(askedCard, trump);
@@ -260,7 +265,7 @@ class GameEngine {
             }
         }
 
-        state.getCombinations().get(position).addAll(findClaims(hand, card));
+        state.getCombinations().get(position).addAll(findClaims(hand, card, trump));
 
         trick.set(position, card);
         hand.remove(card);
@@ -333,7 +338,93 @@ class GameEngine {
     }
 
 
-    public List<Map.Entry<Claim, List<Card>>> findClaims(List<Card> hand, Card card) {
-        return List.of(); // FIXME
+    public List<Map.Entry<Claim, List<Card>>> findClaims(List<Card> hand, Card card, Trump trump) {
+        var claims = new ArrayList<Map.Entry<Claim, List<Card>>>(0);
+
+        // Find Brelans (4 of a kind) and Runs
+        if (hand.size() == 8) {
+            var cards = new ArrayList<>(hand);
+            cards.sort(comparingInt(GameEngine::cardCombinationValue));
+
+            var values = cards.stream().mapToInt(GameEngine::cardCombinationValue).toArray();
+
+            // Find Brelans
+            var counts = new byte[8];
+            for (var value : values) {
+                counts[value % 10]++;
+            }
+
+            for (int i = 0; i < counts.length; i++) {
+                if (counts[i] == 4) { // found a Brelan
+                    // consume the cards, so they dont make more runs
+                    for (int j = 0; j < values.length; j++) {
+                        if (values[j] % 10 == i) values[j] = 0;
+                    }
+
+                    var _i = i;
+                    claims.add(switch (i) {
+                        case 2 -> pair(Claim.BRELAN9, List.of(C9, D9, H9, S9));
+                        case 4 -> pair(Claim.BRELANJ, List.of(CJ, DJ, HJ, SJ));
+                        default -> pair(Claim.BRELAN, cards.stream().filter(c -> cardCombinationValue(c) % 10 == _i).toList());
+                    });
+                }
+            }
+
+
+            // Find runs
+            var run = 0;
+            for (int i = 0; i < hand.size(); i++) {
+                var v = values[i];
+
+                if ((i + 1) != hand.size() && (v + 1) == values[i + 1]) {
+                    run++;
+                    continue;
+                }
+                // TODO: If run is 8 -> TIERCE + QUINT
+                if (run >= 3) {
+                    claims.add(pair(switch (run) {
+                        case 3 -> Claim.TIERCE;
+                        case 4 -> Claim.QUARTE;
+                        default -> Claim.QUINT;
+                    }, new ArrayList<>(cards.subList(i - run + 1, i + 1))));
+                }
+                run = 0;
+            }
+
+        }
+
+        // Find Belote
+        var matchingCard = switch (card) {
+            case CQ -> CK;
+            case DQ -> DK;
+            case HQ -> HK;
+            case SQ -> SK;
+            case CK -> CQ;
+            case DK -> DQ;
+            case HK -> HQ;
+            case SK -> SQ;
+            default -> null;
+        };
+        if (matchingCard != null && isTrump(card, trump)) {
+            if (hand.contains(matchingCard)) {
+                claims.add(pair(Claim.BELOTE, asList(card, matchingCard)));
+            }
+        }
+
+        return claims;
+    }
+
+    private static final byte[] COMBINATION_VALUES_BY_CARD_ORDINAL = new byte[] {
+//          C7, C8, C9, CJ, CQ, CK, C10, CA,
+            10, 11, 12, 14, 15, 16, 13,  17,
+//          D7, D8, D9, DJ, DQ, DK, D10, DA,
+            20, 21, 22, 24, 25, 26, 23,  27,
+//          H7, H8, H9, HJ, HQ, HK, H10, HA,
+            30, 31, 32, 34, 35, 36, 33,  37,
+//          S7, S8, S9, SJ, SQ, SK, S10, SA
+            40, 41, 42, 44, 45, 46, 43,  47
+    };
+    private static int cardCombinationValue(Card card) {
+        return COMBINATION_VALUES_BY_CARD_ORDINAL[card.ordinal()];
     }
 }
