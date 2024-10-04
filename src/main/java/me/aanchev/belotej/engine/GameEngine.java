@@ -185,6 +185,25 @@ class GameEngine {
     /// Playing ///
 
 
+    public void startRound(GameState state) {
+        if (state.getDeck().isEmpty()) {
+            state.getDeck().addAll(state.getInitialDeck());
+        }
+
+        var hands = state.getHands();
+        if (!(hands.getS().isEmpty()
+                && hands.getW().isEmpty()
+                && hands.getN().isEmpty()
+                && hands.getE().isEmpty()
+        )) {
+            return;
+        }
+
+        dealCards(state, 3);
+        dealCards(state, 2);
+    }
+
+
     public void play(GameState state, RelPlayer position, GameAction action) {
         RelPlayer current = state.getNext();
         if (current != position) throw new IllegalStateException("Not your turn!");

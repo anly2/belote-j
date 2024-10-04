@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
@@ -21,6 +22,15 @@ public class GameService {
     private final GameEngine engine;
 
     private Map<String, CountDownLatch> waiters = new ConcurrentHashMap<>(4);
+
+    public String startGame(String player, String gameId) {
+        var session = lobby.getGameSession(player);
+        var game = session.getValue();
+        if (!Objects.equals(game.getGameId(), gameId)) throw new IllegalStateException("Wrong game: " + gameId);
+
+        engine.startRound(game);
+        return gameId;
+    }
 
 
     public PlayerState getStateNow(String player) {

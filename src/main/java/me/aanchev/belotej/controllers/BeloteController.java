@@ -35,6 +35,14 @@ public class BeloteController {
         return gameLobby.joinGame(player, gameId);
     }
 
+    @GetMapping(value = "/{player}/game/start/{gameId}")
+    public String startGame(
+            @PathVariable String player,
+            @PathVariable String gameId
+    ) {
+        return gameService.startGame(player, gameId);
+    }
+
     @GetMapping(value = "/{player}/state")
     public PlayerState state(
             @PathVariable String player,
