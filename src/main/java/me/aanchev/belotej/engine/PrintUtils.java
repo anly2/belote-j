@@ -107,49 +107,6 @@ public class PrintUtils {
     }
 
 
-
-    private static final int iTS = TEMPLATE.indexOf("TS");
-    private static final int iTW = TEMPLATE.indexOf("TW");
-    private static final int iTN = TEMPLATE.indexOf("TN");
-    private static final int iTE = TEMPLATE.indexOf("TE");
-    private static final int eTS = iTS + 2;
-    private static final int eTW = iTW + 2;
-    private static final int eTN = iTN + 2;
-    private static final int eTE = iTE + 2;
-    private static final int iBS = TEMPLATE.indexOf("s");
-    private static final int iBW = TEMPLATE.indexOf("w");
-    private static final int iBN = TEMPLATE.indexOf("n");
-    private static final int iBE = TEMPLATE.indexOf("e");
-    private static final int eBS = iBS + 1;
-    private static final int eBW = iBW + 1;
-    private static final int eBN = iBN + 1;
-    private static final int eBE = iBE + 1;
-    private static final int aCS = eBS;
-    private static final int aCW = eBE; // also HERE!
-    private static final int aCN = eBN;
-    private static final int aCE = eBE;
-
-    public static void printBoard_(GameState gameState) {
-        var result = new StringBuffer(TEMPLATE);
-        result.replace(iTS, eTS, printable(gameState.getTrick().getS()));
-        result.replace(iTW, eTW, printable(gameState.getTrick().getW()));
-        result.replace(iTN, eTN, printable(gameState.getTrick().getN()));
-        result.replace(iTE, eTE, printable(gameState.getTrick().getE()));
-
-        result.replace(iBS, eBS, printable(last(gameState.getCalls().getS())));
-        result.replace(iBW, eBW, printable(last(gameState.getCalls().getW())));
-        result.replace(iBN, eBN, printable(last(gameState.getCalls().getN())));
-        result.replace(iBE, eBE, printable(last(gameState.getCalls().getE())));
-
-        System.out.println(result);
-
-        var hand = "[" + gameState.getHands().getS().stream().map(PrintUtils::printable).collect(joining(", ")) + "]";
-        System.out.println(hand);
-
-        System.out.println("---------------------------------");
-    }
-
-
     private static String printable(Card card) {
         return card == null ? "  " : PRINT_TABLE_CARDS[card.ordinal()];
     }
