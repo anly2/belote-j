@@ -77,7 +77,7 @@ public class BeloteController {
     @GetMapping("/new")
     public HttpResponse<String> newGame(
             @RequestParam(required = false) String seed,
-            @RequestParam(defaultValue = "bot:") String botPrefix,
+            @RequestParam(defaultValue = "bot:PassThenRandom(123):") String botPrefix,
             @RequestParam(required = false) String south,
             @RequestParam(required = false) String west,
             @RequestParam(required = false) String north,
