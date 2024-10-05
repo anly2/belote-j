@@ -4,6 +4,7 @@ package me.aanchev.belotej.controllers;
 import io.micronaut.http.HttpResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.aanchev.belotej.bots.BotsService;
 import me.aanchev.belotej.domain.GameAction;
 import me.aanchev.belotej.domain.PlayerState;
 import me.aanchev.belotej.engine.GameLobby;
@@ -23,6 +24,7 @@ import java.util.UUID;
 public class BeloteController {
     private final GameLobby gameLobby;
     private final GameService gameService;
+    private final BotsService bots;
 
     @GetMapping("/{player}/game/create")
     public String createGame(
@@ -88,10 +90,17 @@ public class BeloteController {
 
 
         var gameId = gameLobby.createGame(south, seed, true);
-        gameLobby.joinGame("wait".equals(west) ? null : west, gameId);
-        gameLobby.joinGame("wait".equals(north) ? null : north, gameId);
-        gameLobby.joinGame("wait".equals(east) ? null : east, gameId);
+        engage("wait".equals(west) ? null : west, gameId);
+        engage("wait".equals(north) ? null : north, gameId);
+        engage("wait".equals(east) ? null : east, gameId);
 
         return HttpResponse.temporaryRedirect(URI.create("/ui/game-view.html?gameId=" + gameId + "&player=" + south));
+    }
+
+    private void engage(String player, String gameId) {
+        gameLobby.joinGame(player, gameId);
+        if (player != null && player.startsWith("bot:")) {
+            bots.engage(player, gameId);
+        }
     }
 }
