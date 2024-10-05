@@ -19,11 +19,6 @@ import static me.aanchev.utils.DataUtils.pair;
 public class GameLobby {
     private Map<String, Map.Entry<RelPlayer, GameState>> gamesByPlayer = new HashMap<>(1);
 
-    protected GameState getGame(String gameId) {
-        var session = gamesByPlayer.values().stream().filter(g -> g.getValue().getGameId().equals(gameId)).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("No such game: " + gameId));
-        return session.getValue();
-    }
 
     protected Map.Entry<RelPlayer, GameState> getGameSession(String player) {
         return gamesByPlayer.get(player);

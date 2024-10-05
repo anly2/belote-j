@@ -1,5 +1,6 @@
 package me.aanchev.belotej.engine;
 
+import io.micronaut.context.annotation.Value;
 import lombok.RequiredArgsConstructor;
 import me.aanchev.belotej.domain.*;
 import me.aanchev.belotej.domain.events.TrickEndedGameEvent;
@@ -20,15 +21,16 @@ import static me.aanchev.belotej.domain.Card.*;
 import static me.aanchev.belotej.domain.PassCall.PASS;
 import static me.aanchev.belotej.domain.Team.sameTeam;
 import static me.aanchev.belotej.engine.GameState.clear;
+import static me.aanchev.belotej.engine.PrintUtils.printBoard;
 import static me.aanchev.utils.DataUtils.pair;
 
 @Service
-@RequiredArgsConstructor
 class GameEngine {
-    private final ApplicationEventPublisher eventPublisher;
+    @Value("${app.print-on-trick-end:false}")
+    private boolean printOnTrickEnd;
 
     public RelPlayer nextTrick(GameState state) {
-        eventPublisher.publishEvent(new TrickEndedGameEvent(state.getGameId()));
+        if (printOnTrickEnd) printBoard(state);
 
         var winner = state.getTrickWinner();
         state.setTrickInitiator(winner);
