@@ -3,14 +3,12 @@ package me.aanchev.belotej.engine;
 import me.aanchev.belotej.domain.*;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static io.micronaut.core.util.CollectionUtils.concat;
 import static java.util.Arrays.asList;
 import static java.util.Collections.shuffle;
+import static java.util.Collections.sort;
 import static java.util.Comparator.comparingInt;
 import static me.aanchev.belotej.domain.Card.*;
 import static me.aanchev.belotej.domain.PassCall.PASS;
@@ -135,23 +133,6 @@ class GameEngine {
     }
 
 
-    public RelPlayer getTrickWinner(GameState state) {
-        var next = state.getTrickInitiator();
-        var trick = state.getTrick();
-        var winnerCard = trick.get(next);
-        var winner = next;
-        for (int i = 0; i < 3; i++) {
-            next = next.next();
-            Card nextCard = trick.get(next);
-            if (nextCard == null) break;
-            if (winsOver(nextCard, winnerCard, state.getTrump())) {
-                winner = next;
-                winnerCard = nextCard;
-            }
-        }
-        return winner;
-    }
-
     public boolean winsOver(Card a, Card b, Trump trump) {
         Trump suitA = getSuit(a);
         Trump suitB = getSuit(b);
@@ -260,7 +241,10 @@ class GameEngine {
         var trick = state.getTrick();
         var initiator = state.getTrickInitiator();
         var winner = state.getTrickWinner();
-        assertCanPlay(state, card, position);
+
+        if (!state.getPlayable().get(position).contains(card)) {
+            assertCanPlay(state, card, position);
+        }
 
         state.getCombinations().get(position).addAll(findClaims(hand, card, trump));
 
@@ -270,6 +254,8 @@ class GameEngine {
         if (winner == null || winsOver(card, trick.get(winner), trump)) {
             state.setTrickWinner(current);
         }
+
+        updatePlayableCards(state);
 
         var next = current.next();
         state.setNext(next);
@@ -281,6 +267,21 @@ class GameEngine {
             }
 
             nextTrick(state);
+        }
+    }
+
+    private void updatePlayableCards(GameState state) {
+        for (int i = 0; i < 4; i++) {
+            var playable = state.getPlayable().get(i);
+            playable.clear();
+            var hand = state.getHands().get(i);
+            var player = RelPlayer.get(i);
+            for (var card : hand) {
+                if (canPlay(state, card, player)) {
+                    playable.add(card);
+                }
+            }
+            sort(playable);
         }
     }
 

@@ -28,6 +28,7 @@ class GameState {
     private RelPlayer dealer = e;
 
     private WNES<List<Card>> hands = wnes(() -> new ArrayList<>(8));
+    private WNES<List<Card>> playable = wnes(() -> new ArrayList<>(8));
 
     private WNES<List<TrumpCall>> calls = wnes(() -> new ArrayList<>(1));
     private TrumpCall winningCall = null;
