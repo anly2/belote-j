@@ -121,7 +121,7 @@ public class PrintUtils {
         return trump == null ? " " : PASS == trump ? "." : PRINT_TABLE_TRUMPS[((Trump) trump).ordinal()];
     }
     public static final String[] PRINT_TABLE_TRUMPS = {
-            "♧", "♦","♥", "♤", "A", "J"
+            "♧", "♦", "♥", "♤", "A", "J"
     };
 
 

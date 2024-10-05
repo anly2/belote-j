@@ -20,6 +20,7 @@ public class PlayerState {
     private RelPlayer playerInTurn;
 
     private List<Card> hand;
+    private List<Card> playable;
 
     private WNES<List<TrumpCall>> calls;
     private Trump trump;

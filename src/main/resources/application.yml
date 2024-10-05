@@ -9,3 +9,6 @@ micronaut:
       swagger-ui:
         paths: classpath:META-INF/swagger/views/swagger-ui
         mapping: /swagger-ui/**
+      game:
+        paths: classpath:static
+        mapping: /ui/**

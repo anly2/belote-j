@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game View</title>
+    <style>
+        #trick_and_bids {
+            display: inline-grid;
+            grid-template-areas:
+                    ".          trick-north .          d .         .           bids-north claims-north .          ."
+                    "trick-west .           trick-east d bids-west claims-west .          .            bids-east  claims-east"
+                    ".          trick-south .          d .         .           bids-south claims-south .          .";
+        }
+
+        .card, .bid, #hand > *, #actions > * {
+            font-size: 24px;
+            text-space: 5px;
+            font-weight: bold;
+        }
+
+        .card:first-letter {
+        }
+        .claims {
+            font-size: 18px;
+            text-transform: capitalize;
+        }
+
+        .suit.diamonds, .suit.hearts {
+            color: red;
+        }
+        .suit.clubs, .suit.spades {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+<div>Game ID: <span id="game-id"></span></div>
+<div>Player: <span id="player-name"></span></div>
+<br>
+<div id="trick_and_bids">
+    <div id="trick-south" class="trick south card" style="grid-area: trick-south"></div>
+    <div id="trick-west" class="trick west card" style="grid-area: trick-west"></div>
+    <div id="trick-north" class="trick north card" style="grid-area: trick-north"></div>
+    <div id="trick-east" class="trick east card" style="grid-area: trick-east"></div>
+
+
+    <div style="grid-area: d; border-left: 1px solid black; width: 0px; height: 100%; margin: 0px 2em;"></div>
+
+    <div id="bids-south" class="south bid" style="grid-area: bids-south"></div>
+    <div id="bids-west" class="west bid" style="grid-area: bids-west"></div>
+    <div id="bids-north" class="north bid" style="grid-area: bids-north"></div>
+    <div id="bids-east" class="east bid" style="grid-area: bids-east"></div>
+
+    <div id="claims-south" class="south claims" style="grid-area: claims-south"></div>
+    <div id="claims-west" class="west claims" style="grid-area: claims-west"></div>
+    <div id="claims-north" class="north claims" style="grid-area: claims-north"></div>
+    <div id="claims-east" class="east claims" style="grid-area: claims-east"></div>
+</div>
+
+<div id="hand"></div>
+
+<div id="actions"></div>
+
+
+<script type="text/javascript">
+  const player = new URLSearchParams(window.location.search).get("player");
+  const gameId = new URLSearchParams(window.location.search).get("gameId");
+
+  function play(action) {
+    fetch("/" + player + "/play/" + action + "?waitForMyTurn=true").then(r => r.json())
+      .then(state => refresh(state));
+  }
+
+  const formatCard = card => (card ?? "")
+    .replace(/^C/g, "<span class=\"suit clubs\">♣</span>")
+    .replace(/^D/g, "<span class=\"suit diamonds\">♦</span>")
+    .replace(/^H/g, "<span class=\"suit hearts\">♥</span>")
+    .replace(/^S/g, "<span class=\"suit spades\">♠</span>");
+  const formatAction = action => !action ? "" : action === "PASS" ? "Pass" : formatCard(action);
+  const formatBids = bids => bids && bids.length ? bids.map(b => formatAction(b)).join(" &rarr; ") : "";
+  const formatClaims = claims => claims && claims.length ? "[" + claims.map(c => "<span class=\"claim\">" + c + "</span>").join(" ") + "]" : "";
+
+  function updateBoard(state, actions) {
+    document.getElementById("player-name").innerHTML = player;
+    document.getElementById("game-id").innerHTML = gameId;
+
+    document.getElementById("trick-south").innerHTML = formatCard(state.trick?.s);
+    document.getElementById("trick-west").innerHTML = formatCard(state.trick?.w);
+    document.getElementById("trick-north").innerHTML = formatCard(state.trick?.n);
+    document.getElementById("trick-east").innerHTML = formatCard(state.trick?.e);
+
+    document.getElementById("bids-south").innerHTML = formatBids(state.calls?.s);
+    document.getElementById("bids-west").innerHTML = formatBids(state.calls?.w);
+    document.getElementById("bids-north").innerHTML = formatBids(state.calls?.n);
+    document.getElementById("bids-east").innerHTML = formatBids(state.calls?.e);
+
+    document.getElementById("claims-south").innerHTML = formatClaims(state.claims?.s);
+    document.getElementById("claims-west").innerHTML = formatClaims(state.claims?.w);
+    document.getElementById("claims-north").innerHTML = formatClaims(state.claims?.n);
+    document.getElementById("claims-east").innerHTML = formatClaims(state.claims?.e);
+
+    document.getElementById("hand").innerHTML = state?.hand?.map(card =>
+      "<span class=\"card\">" + formatCard(card) + "</span>").join("\n");
+    document.getElementById("actions").innerHTML = actions?.map(action =>
+      "<button onclick=\"play('" + action + "')\">" + formatAction(action) + "</button>").join("\n");
+  }
+
+  function refresh(state) {
+      Promise.all([
+        state ? Promise.resolve(state) : fetch("/" + player + "/state").then(r => r.json()),
+        fetch("/" + player + "/play").then(r => r.json())
+      ]).then(e => updateBoard(e[0], e[1]))
+  }
+
+  refresh();
+</script>
+
+</body>
+</html>

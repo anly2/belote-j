@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.aanchev.belotej.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -22,15 +23,6 @@ public class GameService {
     private final GameEngine engine;
 
     private Map<String, CountDownLatch> waiters = new ConcurrentHashMap<>(4);
-
-    public String startGame(String player, String gameId) {
-        var session = lobby.getGameSession(player);
-        var game = session.getValue();
-        if (!Objects.equals(game.getGameId(), gameId)) throw new IllegalStateException("Wrong game: " + gameId);
-
-        engine.startRound(game);
-        return gameId;
-    }
 
 
     public PlayerState getStateNow(String player) {
@@ -51,6 +43,13 @@ public class GameService {
         }
 
         return getPlayerState(session.getValue(), session.getKey());
+    }
+
+    public List<GameAction> getValidActions(String player) {
+        var session = lobby.getGameSession(player);
+        if (session == null) return null;
+
+        return engine.getValidActions(session.getValue(), session.getKey());
     }
 
     protected PlayerState getPlayerState(GameState gameState, RelPlayer position) {

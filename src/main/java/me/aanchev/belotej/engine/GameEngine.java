@@ -1,10 +1,7 @@
 package me.aanchev.belotej.engine;
 
 import io.micronaut.context.annotation.Value;
-import lombok.RequiredArgsConstructor;
 import me.aanchev.belotej.domain.*;
-import me.aanchev.belotej.domain.events.TrickEndedGameEvent;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import static io.micronaut.core.util.CollectionUtils.concat;
+import static io.micronaut.core.util.CollectionUtils.last;
 import static java.util.Arrays.asList;
 import static java.util.Collections.shuffle;
 import static java.util.Collections.sort;
@@ -199,6 +197,25 @@ class GameEngine {
     }
 
 
+    public List<GameAction> getValidActions(GameState state, RelPlayer player) {
+        if (state.getTrump() == null) {
+            var best = state.getWinningCall() instanceof Trump t ? t.ordinal() : -1;
+            var res = new ArrayList<GameAction>(TRUMPS_COUNT - best);
+            res.add(PASS);
+            for (var trump : Trump.values()) {
+                if (trump.ordinal() > best) {
+                    res.add(trump);
+                }
+            }
+            return res;
+        }
+
+        //noinspection unchecked
+        return (List<GameAction>) (List<?>) state.getPlayable().get(player);
+    }
+    private static final int TRUMPS_COUNT = Trump.values().length;
+
+
     public void play(GameState state, RelPlayer position, GameAction action) {
         RelPlayer current = state.getNext();
         if (current != position) throw new IllegalStateException("Not your turn!");
@@ -219,11 +236,12 @@ class GameEngine {
             state.setNext(next);
             if (action != PASS) {
                 state.setWinningCall((TrumpCall) action);
+                winningCall = state.getWinningCall();
                 state.setChallengers(Team.of(position));
             }
 
             // If roundabout is complete
-            if (state.getCalls().get(next).getLast() != winningCall) return;
+            if (last(state.getCalls().get(next)) != winningCall) return;
 
             if (winningCall == PASS) { // everyone passed
                 foldRound(state);
