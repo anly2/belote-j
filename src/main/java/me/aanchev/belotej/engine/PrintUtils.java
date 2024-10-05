@@ -29,10 +29,9 @@ public class PrintUtils {
 
 
     private static final int EST_LEN = TEMPLATE.length();
-    private static final GameEngine ge = new GameEngine(); // FIXME: winner as state
     public static void printBoard(GameState gameState) {
         var trickInitiator = gameState.getTrickInitiator();
-        var winner = trickInitiator == null ? null : ge.getTrickWinner(gameState); // FIXME
+        var winner = trickInitiator == null ? null : gameState.getTrickWinner();
 
         var sb = new StringBuilder(EST_LEN);
         sb.append("     ");

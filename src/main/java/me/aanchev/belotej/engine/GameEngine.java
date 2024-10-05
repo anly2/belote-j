@@ -22,7 +22,7 @@ import static me.aanchev.utils.DataUtils.pair;
 class GameEngine {
 
     public RelPlayer nextTrick(GameState state) {
-        var winner = getTrickWinner(state);
+        var winner = state.getTrickWinner();
         state.setTrickInitiator(winner);
         state.setNext(winner);
 
@@ -31,6 +31,7 @@ class GameEngine {
         state.getScore().add(trickPoints, winner);
 
         moveTrickCardsToWinPiles(state, winner);
+
         return winner;
     }
 
@@ -38,6 +39,7 @@ class GameEngine {
         var winner = nextTrick(state);
         state.getScore().add(10, winner);
 
+        state.setTrickWinner(null);
         state.setTrickInitiator(null);
         state.setDealer(state.getDealer().next()); // shift the dealer to the next
         state.setNext(state.getDealer().next());   // shift the next to the next of the dealer (yet again)
@@ -257,6 +259,7 @@ class GameEngine {
         var trump = state.getTrump();
         var trick = state.getTrick();
         var initiator = state.getTrickInitiator();
+        var winner = state.getTrickWinner();
         if (!trick.isEmpty()) {
             var askedCard = trick.get(initiator);
             var askedSuit = getSuit(askedCard);
@@ -275,7 +278,7 @@ class GameEngine {
                     throw new IllegalArgumentException("You have a card from the asked suit but you are not playing it!");
                 }
                 if (!Trump.isTrump(askedSuit, trump) && !Trump.isTrump(suit, trump)) {
-                    if (!sameTeam(getTrickWinner(state), position)) {
+                    if (!sameTeam(winner, position)) {
                         if (hand.stream().anyMatch(c -> isTrump(c, trump))) {
                             throw new IllegalArgumentException("You have a trump but you are not playing it!");
                         }
@@ -288,6 +291,10 @@ class GameEngine {
 
         trick.set(position, card);
         hand.remove(card);
+
+        if (winner == null || winsOver(card, trick.get(winner), trump)) {
+            state.setTrickWinner(current);
+        }
 
         var next = current.next();
         state.setNext(next);
