@@ -1,6 +1,7 @@
 package me.aanchev.belotej.engine;
 
 import io.micronaut.context.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import me.aanchev.belotej.domain.*;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,7 @@ import static me.aanchev.belotej.engine.GameState.clear;
 import static me.aanchev.belotej.engine.PrintUtils.printBoard;
 import static me.aanchev.utils.DataUtils.pair;
 
+@Slf4j
 @Service
 class GameEngine {
     @Value("${app.print-on-trick-end:false}")
@@ -217,6 +219,7 @@ class GameEngine {
 
 
     public void play(GameState state, RelPlayer position, GameAction action) {
+        log.info("[game:{}] '{}' played: {}", state.getGameId(), position, action);
         RelPlayer current = state.getNext();
         if (current != position) throw new IllegalStateException("Not your turn!");
 

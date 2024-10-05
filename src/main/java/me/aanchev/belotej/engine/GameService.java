@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
@@ -35,14 +34,24 @@ public class GameService {
         var session = lobby.getGameSession(player);
         if (session == null) return null;
 
-        if (waitForTurn && !player.equals(getNextPlayerName(session.getValue()))) {
-
-            var latch = new CountDownLatch(1);
-            waiters.put(player, latch);
-            await(latch);
-        }
+        if (waitForTurn) awaitTurn(player, session.getValue());
 
         return getPlayerState(session.getValue(), session.getKey());
+    }
+
+    public void awaitTurn(String player) {
+        awaitTurn(player, lobby.getGameSession(player).getValue());
+    }
+    private void awaitTurn(String player, GameState game) {
+        CountDownLatch latch;
+        synchronized (game) {
+            if (player.equals(getNextPlayerName(game))) {
+                return;
+            }
+            latch = new CountDownLatch(1);
+            waiters.put(player, latch);
+        }
+        await(latch);
     }
 
     public List<GameAction> getValidActions(String player) {

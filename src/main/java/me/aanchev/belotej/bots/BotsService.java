@@ -28,8 +28,9 @@ public class BotsService {
         var strategy = strategyFactory.apply(name);
         var t = new Thread(() -> {
             while(true) {
+                game.awaitTurn(name);
                 var action = strategy.apply(game, name);
-                game.playAndWait(name, action);
+                game.play(name, action);
             }
         });
         t.setDaemon(true);
