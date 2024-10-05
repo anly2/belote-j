@@ -26,11 +26,11 @@ import static me.aanchev.utils.DataUtils.pair;
 @Slf4j
 @Service
 class GameEngine {
-    @Value("${app.print-on-trick-end:false}")
+    @Value("${app.print-on-trick-end:true}")
     private boolean printOnTrickEnd;
 
     public RelPlayer nextTrick(GameState state) {
-        if (printOnTrickEnd) printBoard(state);
+        if (printOnTrickEnd) printBoard(state); // TODO: will need an event because the web ui cant currently show this as it is too late when the South turn comes
 
         var winner = state.getTrickWinner();
         state.setTrickInitiator(winner);

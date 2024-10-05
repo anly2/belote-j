@@ -88,6 +88,7 @@ public class GameService {
     }
 
     public void play(String player, GameAction action, boolean wait) throws IllegalArgumentException, IllegalStateException {
+        // FIXME: playAndWait when immediately own turn again fails?!
         var session = lobby.getGameSession(player);
         if (session == null) throw new NoSuchElementException("Player '"+player+"' is not part of a game!");
 
