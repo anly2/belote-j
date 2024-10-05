@@ -260,32 +260,7 @@ class GameEngine {
         var trick = state.getTrick();
         var initiator = state.getTrickInitiator();
         var winner = state.getTrickWinner();
-        if (!trick.isEmpty()) {
-            var askedCard = trick.get(initiator);
-            var askedSuit = getSuit(askedCard);
-            var suit = getSuit(card);
-            if (askedSuit == suit) {
-                if (Trump.isTrump(askedSuit, trump)) {
-                    var powerThreshold = getPower(askedCard, trump);
-                    if (getPower(card, trump) <= powerThreshold) {
-                        if (hand.stream().anyMatch(c -> askedSuit == getSuit(c) && getPower(c, trump) > powerThreshold)) {
-                            throw new IllegalArgumentException("You have a card with which to raise but you are not playing it!");
-                        }
-                    }
-                }
-            } else {
-                if (hand.stream().anyMatch(c -> askedSuit == getSuit(c))) {
-                    throw new IllegalArgumentException("You have a card from the asked suit but you are not playing it!");
-                }
-                if (!Trump.isTrump(askedSuit, trump) && !Trump.isTrump(suit, trump)) {
-                    if (!sameTeam(winner, position)) {
-                        if (hand.stream().anyMatch(c -> isTrump(c, trump))) {
-                            throw new IllegalArgumentException("You have a trump but you are not playing it!");
-                        }
-                    }
-                }
-            }
-        }
+        assertCanPlay(state, card, position);
 
         state.getCombinations().get(position).addAll(findClaims(hand, card, trump));
 
@@ -307,6 +282,51 @@ class GameEngine {
 
             nextTrick(state);
         }
+    }
+
+    protected void assertCanPlay(GameState state, Card card, RelPlayer player) {
+        var reason = cannotPlayReason(state, card, player);
+        if (reason != null) throw new IllegalArgumentException(reason);
+    }
+    protected boolean canPlay(GameState state, Card card, RelPlayer player) {
+        return cannotPlayReason(state, card, player) == null;
+    }
+    protected String cannotPlayReason(GameState state, Card card, RelPlayer player) {
+        var trick = state.getTrick();
+        if (trick.isEmpty()) return null;
+
+        var trump = state.getTrump();
+        var initiator = state.getTrickInitiator();
+        var winner = state.getTrickWinner();
+        var hand = state.getHands().get(player);
+
+        var askedCard = trick.get(initiator);
+        var askedSuit = getSuit(askedCard);
+        var suit = getSuit(card);
+
+        if (askedSuit == suit) {
+            if (Trump.isTrump(askedSuit, trump)) {
+                var powerThreshold = getPower(askedCard, trump);
+                if (getPower(card, trump) <= powerThreshold) {
+                    if (hand.stream().anyMatch(c -> askedSuit == getSuit(c) && getPower(c, trump) > powerThreshold)) {
+                        return "You have a card with which to raise but you are not playing it!";
+                    }
+                }
+            }
+        } else {
+            if (hand.stream().anyMatch(c -> askedSuit == getSuit(c))) {
+                return "You have a card from the asked suit but you are not playing it!";
+            }
+            if (!Trump.isTrump(askedSuit, trump) && !Trump.isTrump(suit, trump)) {
+                if (!sameTeam(winner, player)) {
+                    if (hand.stream().anyMatch(c -> isTrump(c, trump))) {
+                        return "You have a trump but you are not playing it!";
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     public static final Comparator<TrumpCall> BID_COMPARATOR = comparingInt(bid ->
