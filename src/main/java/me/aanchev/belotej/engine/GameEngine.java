@@ -1,9 +1,15 @@
 package me.aanchev.belotej.engine;
 
+import lombok.RequiredArgsConstructor;
 import me.aanchev.belotej.domain.*;
+import me.aanchev.belotej.domain.events.TrickEndedGameEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 import static io.micronaut.core.util.CollectionUtils.concat;
 import static java.util.Arrays.asList;
@@ -17,9 +23,13 @@ import static me.aanchev.belotej.engine.GameState.clear;
 import static me.aanchev.utils.DataUtils.pair;
 
 @Service
+@RequiredArgsConstructor
 class GameEngine {
+    private final ApplicationEventPublisher eventPublisher;
 
     public RelPlayer nextTrick(GameState state) {
+        eventPublisher.publishEvent(new TrickEndedGameEvent(state.getGameId()));
+
         var winner = state.getTrickWinner();
         state.setTrickInitiator(winner);
         state.setNext(winner);
