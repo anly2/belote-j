@@ -258,6 +258,7 @@ class GameEngine {
             state.setTrickInitiator(trickInitiator);
             state.setNext(trickInitiator);
 
+            updatePlayableCards(state);
             return;
         }
 
@@ -288,18 +289,21 @@ class GameEngine {
             state.setTrickWinner(current);
         }
 
-        updatePlayableCards(state);
 
         var next = current.next();
         state.setNext(next);
 
-        if (next == initiator) {
-            if (hand.isEmpty() && state.getHands().get(position.next()).isEmpty()) {
-                nextRound(state);
-                return;
-            }
+        try {
+            if (next == initiator) {
+                if (hand.isEmpty() && state.getHands().get(position.next()).isEmpty()) {
+                    nextRound(state); // FIXME: might not be updating correctly
+                    return;
+                }
 
-            nextTrick(state);
+                nextTrick(state);
+            }
+        } finally {
+            updatePlayableCards(state);
         }
     }
 
