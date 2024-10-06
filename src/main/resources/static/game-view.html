@@ -7,12 +7,17 @@
         #trick_and_bids {
             display: inline-grid;
             grid-template-areas:
-                    "th         prev-trick-north .               t .          trick-north .          d .         .           bids-north claims-north .          ."
-                    "prev-trick-west .           prev-trick-east t trick-west .           trick-east d bids-west claims-west .          .            bids-east  claims-east"
-                    ".          prev-trick-south .               t .          trick-south .          d .         .           bids-south claims-south .          .";
+                    "prev-trick-head prev-trick-head  prev-trick-head t trick-head trick-head  trick-head d calls-head calls-head  calls-head calls-head   calls-head calls-head"
+                    ".               prev-trick-north .               t .          trick-north .          d .          .           bids-north claims-north .          ."
+                    "prev-trick-west .                prev-trick-east t trick-west .           trick-east d bids-west  claims-west .          .            bids-east  claims-east"
+                    ".               prev-trick-south .               t .          trick-south .          d .          .           bids-south claims-south .          .";
         }
 
-        .card, .bid, #hand > *, #actions > * {
+        .head {
+            text-align: center;
+        }
+
+        .card, .bids, #hand > *, #actions > * {
             font-size: 24px;
             text-space: 5px;
             font-weight: bold;
@@ -29,18 +34,23 @@
             margin-top: 1em;
         }
         #hand:before {
-            content: "Hand: "
+            content: "Hand: ";
             display: block;
         }
 
         #actions {
             margin-top: 0.5em;
         }
-        #actions:before {
-            content: "Play: "
+        #actions::before {
+            content: "Play: ";
             display: block;
         }
 
+        .trick, .bids {
+            display: inline-block;
+            width: 1.5em;
+            text-align: center;
+        }
         .suit.diamonds, .suit.hearts {
             color: red;
         }
@@ -61,12 +71,15 @@
 <div>Player: <span id="player-name"></span></div>
 <br>
 <div id="trick_and_bids">
+    <div class="prev-trick head" style="grid-area: prev-trick-head;">Previous:</div>
+    <div class="head" style="grid-area: trick-head;">Trick:</div>
+    <div class="head" style="grid-area: calls-head;">Bids and claims:</div>
+
     <div id="prev-trick-south" class="prev-trick trick south card" style="grid-area: prev-trick-south"></div>
     <div id="prev-trick-west" class="prev-trick trick west card" style="grid-area: prev-trick-west"></div>
     <div id="prev-trick-north" class="prev-trick trick north card" style="grid-area: prev-trick-north"></div>
     <div id="prev-trick-east" class="prev-trick trick east card" style="grid-area: prev-trick-east"></div>
 
-<!--    <div class="prev-trick" style="grid-area: th;">Previous:</div>-->
     <div class="prev-trick" style="grid-area: t; height: 0; width: 0; margin: 0px 1em;  border-style: solid; border-color: transparent transparent transparent black; border-width: 3em 0 3em 1em"></div>
 
     <div id="trick-south" class="trick south card" style="grid-area: trick-south"></div>
@@ -77,10 +90,10 @@
 
     <div style="grid-area: d; border-left: 1px solid black; width: 0px; height: 100%; margin: 0px 2em;"></div>
 
-    <div id="bids-south" class="south bid" style="grid-area: bids-south"></div>
-    <div id="bids-west" class="west bid" style="grid-area: bids-west"></div>
-    <div id="bids-north" class="north bid" style="grid-area: bids-north"></div>
-    <div id="bids-east" class="east bid" style="grid-area: bids-east"></div>
+    <div id="bids-south" class="south bids" style="grid-area: bids-south"></div>
+    <div id="bids-west" class="west bids" style="grid-area: bids-west"></div>
+    <div id="bids-north" class="north bids" style="grid-area: bids-north"></div>
+    <div id="bids-east" class="east bids" style="grid-area: bids-east"></div>
 
     <div id="claims-south" class="south claims" style="grid-area: claims-south"></div>
     <div id="claims-west" class="west claims" style="grid-area: claims-west"></div>
@@ -102,7 +115,7 @@
       .then(state => refresh(state));
   }
 
-  const formatCard = card => (card ?? "-")
+  const formatCard = card => (card ?? "<span class=\"na\">-</span>")
     .replace(/^C/g, "<span class=\"suit clubs\">♣</span>")
     .replace(/^D/g, "<span class=\"suit diamonds\">♦</span>")
     .replace(/^H/g, "<span class=\"suit hearts\">♥</span>")
