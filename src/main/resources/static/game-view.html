@@ -71,9 +71,9 @@
 <div>Player: <span id="player-name"></span></div>
 <br>
 <div id="trick_and_bids">
-    <div class="prev-trick head" style="grid-area: prev-trick-head;">Previous:</div>
-    <div class="head" style="grid-area: trick-head;">Trick:</div>
-    <div class="head" style="grid-area: calls-head;">Bids and claims:</div>
+    <div id="head-prev-trick" class="prev-trick head" style="grid-area: prev-trick-head;">Previous:</div>
+    <div id="head-trick" class="head" style="grid-area: trick-head;">Trick:</div>
+    <div id="head-calls" class="head" style="grid-area: calls-head;">Bids and claims:</div>
 
     <div id="prev-trick-south" class="prev-trick trick south card" style="grid-area: prev-trick-south"></div>
     <div id="prev-trick-west" class="prev-trick trick west card" style="grid-area: prev-trick-west"></div>
@@ -156,6 +156,10 @@
       "<span class=\"card\">" + formatCard(card) + "</span>").join("\n");
     document.getElementById("actions").innerHTML = actions?.map(action =>
       "<button onclick=\"play('" + action + "')\">" + (action === "PASS" ? "Pass" : formatAction(action)) + "</button>").join("\n");
+
+    document.getElementById("head-calls").setAttribute('title',
+        "Score: (US | THEM)\n"+(state?.score?.us ?? "-")+" | "+(state?.score?.them ?? "-") +
+        "\n\nMatch points: (US | THEM)\n"+(state?.gameScore?.us ?? "-")+" | "+(state?.gameScore?.them ?? "-"));
   }
 
   function refresh(state) {
