@@ -65,6 +65,17 @@ class GameEngine {
         state.setDealer(state.getDealer().next()); // shift the dealer to the next
         state.setNext(state.getDealer().next());   // shift the next to the next of the dealer (yet again)
         updateGameScore(state);
+
+        moveWinPilesToDeck(state);
+        dealCards(state, 3);
+        dealCards(state, 2);
+
+        state.setTrump(null);
+        state.setWinningCall(null);
+        state.setChallengers(null);
+        clear(state.getCalls());
+
+        updatePlayableCards(state);
     }
 
     protected void updateGameScore(GameState state) {
@@ -440,6 +451,31 @@ class GameEngine {
         taken.clear();
         return copy;
     }
+
+
+    protected void moveWinPilesToDeck(GameState state) {
+        // TODO: Apply the "shuffling strategy" onRoundEnd
+        WNES<List<Card>> winPiles = state.getWinPiles();
+        var countPileUs = new ArrayList<Card>(winPiles.getS().size() + winPiles.getN().size());
+        countPileUs.addAll(winPiles.getS());
+        countPileUs.addAll(winPiles.getN());
+        var countPileThem = new ArrayList<Card>(winPiles.getW().size() + winPiles.getE().size());
+        countPileThem.addAll(winPiles.getW());
+        countPileThem.addAll(winPiles.getE());
+
+        var piles = new ArrayList<List<Card>>(2);
+        piles.add(countPileUs);
+        piles.add(countPileThem);
+        shuffle(piles, state.getRandom());
+
+        var deck = state.getDeck();
+        piles.forEach(deck::addAll);
+
+        cutDeck(state, state.getRandom().nextInt(state.getDeck().size()));
+
+        clear(winPiles);
+    }
+
 
 
     public List<Map.Entry<Claim, List<Card>>> findClaims(List<Card> hand, Card card, Trump trump) {
