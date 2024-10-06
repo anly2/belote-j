@@ -59,12 +59,26 @@ class GameEngine {
         var winner = nextTrick(state);
         state.getScore().add(10, winner);
 
+        var matchPointsUsBefore = state.getGameScore().getUs();
+        var matchPointsThemBefore = state.getGameScore().getThem();
+        if (printOnTrickEnd) {
+            System.out.println("Round ended!" +
+                    "\nScore after last trick: " + state.getScore().getUs() + " | " + state.getScore().getThem());
+        }
+
         state.getPreviousTrick().reset();
         state.setTrickWinner(null);
         state.setTrickInitiator(null);
         state.setDealer(state.getDealer().next()); // shift the dealer to the next
         state.setNext(state.getDealer().next());   // shift the next to the next of the dealer (yet again)
         updateGameScore(state);
+
+        if (printOnTrickEnd) {
+            System.out.println("Match points: " +
+                    state.getGameScore().getUs() + " (+" + (state.getGameScore().getUs() - matchPointsUsBefore) + ")" +
+                    " | " +
+                    state.getGameScore().getThem() + " (+" + (state.getGameScore().getThem() - matchPointsThemBefore) + ")");
+        }
 
         moveWinPilesToDeck(state);
         dealCards(state, 3);
