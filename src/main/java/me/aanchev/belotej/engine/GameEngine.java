@@ -476,7 +476,7 @@ class GameEngine {
 
 
             // Find runs
-            var run = 0;
+            var run = 1;
             for (int i = 0; i < hand.size(); i++) {
                 var v = values[i];
 
@@ -484,7 +484,11 @@ class GameEngine {
                     run++;
                     continue;
                 }
-                // TODO: If run is 8 -> TIERCE + QUINT
+                if (run == 8) {
+                    // A "full house" run of 8 is TIERCE + QUINT
+                    claims.add(pair(Claim.TIERCE, new ArrayList<>(cards.subList(0, 3))));
+                    claims.add(pair(Claim.QUINT, new ArrayList<>(cards.subList(3, 8))));
+                } else
                 if (run >= 3) {
                     claims.add(pair(switch (run) {
                         case 3 -> Claim.TIERCE;
@@ -492,7 +496,7 @@ class GameEngine {
                         default -> Claim.QUINT;
                     }, new ArrayList<>(cards.subList(i - run + 1, i + 1))));
                 }
-                run = 0;
+                run = 1;
             }
 
         }
