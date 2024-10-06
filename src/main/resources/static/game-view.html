@@ -54,7 +54,14 @@
             display: inline-block;
             width: 1.5em;
             text-align: center;
+            margin-right: 0.5em;
+            white-space: nowrap;
         }
+
+        .binds small {
+            font-size: 14px;
+        }
+
         .suit.diamonds, .suit.hearts {
             color: red;
         }
@@ -132,7 +139,7 @@
     .replace(/^H/g, "<span class=\"suit hearts\">♥</span>")
     .replace(/^S/g, "<span class=\"suit spades\">♠</span>");
   const formatAction = action => !action ? "" : action === "PASS" ? "." : formatCard(action);
-  const formatBids = bids => bids && bids.length ? bids.map(b => formatAction(b)).join(" &rarr; ") : "";
+  const formatBids = bids => bids && bids.length ? bids.map(b => formatAction(b)).join(" <small>&rarr;</small> ") : "";
   const formatClaims = claims => claims && claims.length ? "[" + claims.map(c => "<span class=\"claim\">" + c + "</span>").join(" ") + "]" : "";
 
   function updateBoard(state, actions) {
