@@ -32,10 +32,14 @@
 
         #hand {
             margin-top: 1em;
+            display: flex;
+            flex-wrap: wrap;
+            column-gap: 1.25em;
         }
         #hand:before {
             content: "Hand: ";
             display: block;
+            margin-right: 100%;
         }
 
         #actions {
@@ -152,7 +156,8 @@
     document.getElementById("claims-north").innerHTML = formatClaims(state.claims?.n);
     document.getElementById("claims-east").innerHTML = formatClaims(state.claims?.e);
 
-    document.getElementById("hand").innerHTML = state?.hand?.map(card =>
+    document.getElementById("hand").setAttribute("title", "Unsorted hand:\n" + state?.hand?.join(", "));
+    document.getElementById("hand").innerHTML = state?.hand?.sort()?.map(card =>
       "<span class=\"card\">" + formatCard(card) + "</span>").join("\n");
     document.getElementById("actions").innerHTML = actions?.map(action =>
       "<button onclick=\"play('" + action + "')\">" + (action === "PASS" ? "Pass" : formatAction(action)) + "</button>").join("\n");
