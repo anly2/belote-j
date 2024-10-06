@@ -14,7 +14,6 @@ import static io.micronaut.core.util.CollectionUtils.concat;
 import static io.micronaut.core.util.CollectionUtils.last;
 import static java.util.Arrays.asList;
 import static java.util.Collections.shuffle;
-import static java.util.Collections.sort;
 import static java.util.Comparator.comparingInt;
 import static me.aanchev.belotej.domain.Card.*;
 import static me.aanchev.belotej.domain.PassCall.PASS;
@@ -337,7 +336,8 @@ class GameEngine {
                     playable.add(card);
                 }
             }
-            sort(playable);
+            var trump = state.getTrump();
+            playable.sort(comparingInt(c -> getValue(c, trump)));
         }
     }
 
