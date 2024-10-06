@@ -1,16 +1,16 @@
 package me.aanchev.belotej.engine;
 
-import me.aanchev.belotej.domain.*;
+import me.aanchev.belotej.domain.Card;
+import me.aanchev.belotej.domain.Claim;
+import me.aanchev.belotej.domain.Trump;
+import me.aanchev.belotej.domain.TrumpCall;
 
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static io.micronaut.core.util.CollectionUtils.last;
 import static java.util.stream.Collectors.joining;
 import static me.aanchev.belotej.domain.PassCall.PASS;
 import static me.aanchev.belotej.domain.RelPlayer.*;
-import static me.aanchev.belotej.domain.RelPlayer.e;
 
 public class PrintUtils {
     public static void printBoard(GameLobby lobby, String player) {
@@ -101,6 +101,8 @@ public class PrintUtils {
 
         var hand = "[" + gameState.getHands().getS().stream().sorted().map(PrintUtils::printable).collect(joining(", ")) + "]";
         System.out.println(hand);
+
+        System.out.println("(Score: " + gameState.getScore().getUs() + " | " + gameState.getScore().getThem() + " )                seed: " + gameState.getSeed());
 
         System.out.println("---------------------------------");
     }
