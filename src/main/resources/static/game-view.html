@@ -7,9 +7,9 @@
         #trick_and_bids {
             display: inline-grid;
             grid-template-areas:
-                    ".          trick-north .          d .         .           bids-north claims-north .          ."
-                    "trick-west .           trick-east d bids-west claims-west .          .            bids-east  claims-east"
-                    ".          trick-south .          d .         .           bids-south claims-south .          .";
+                    "th         prev-trick-north .               t .          trick-north .          d .         .           bids-north claims-north .          ."
+                    "prev-trick-west .           prev-trick-east t trick-west .           trick-east d bids-west claims-west .          .            bids-east  claims-east"
+                    ".          prev-trick-south .               t .          trick-south .          d .         .           bids-south claims-south .          .";
         }
 
         .card, .bid, #hand > *, #actions > * {
@@ -25,11 +25,34 @@
             text-transform: capitalize;
         }
 
+        #hand {
+            margin-top: 1em;
+        }
+        #hand:before {
+            content: "Hand: "
+            display: block;
+        }
+
+        #actions {
+            margin-top: 0.5em;
+        }
+        #actions:before {
+            content: "Play: "
+            display: block;
+        }
+
         .suit.diamonds, .suit.hearts {
             color: red;
         }
         .suit.clubs, .suit.spades {
             color: black;
+        }
+
+        .prev-trick {
+            display: none;
+        }
+        .has-prev-trick .prev-trick {
+            display: initial;
         }
     </style>
 </head>
@@ -38,6 +61,14 @@
 <div>Player: <span id="player-name"></span></div>
 <br>
 <div id="trick_and_bids">
+    <div id="prev-trick-south" class="prev-trick trick south card" style="grid-area: prev-trick-south"></div>
+    <div id="prev-trick-west" class="prev-trick trick west card" style="grid-area: prev-trick-west"></div>
+    <div id="prev-trick-north" class="prev-trick trick north card" style="grid-area: prev-trick-north"></div>
+    <div id="prev-trick-east" class="prev-trick trick east card" style="grid-area: prev-trick-east"></div>
+
+<!--    <div class="prev-trick" style="grid-area: th;">Previous:</div>-->
+    <div class="prev-trick" style="grid-area: t; height: 0; width: 0; margin: 0px 1em;  border-style: solid; border-color: transparent transparent transparent black; border-width: 3em 0 3em 1em"></div>
+
     <div id="trick-south" class="trick south card" style="grid-area: trick-south"></div>
     <div id="trick-west" class="trick west card" style="grid-area: trick-west"></div>
     <div id="trick-north" class="trick north card" style="grid-area: trick-north"></div>
@@ -83,6 +114,15 @@
   function updateBoard(state, actions) {
     document.getElementById("player-name").innerHTML = player;
     document.getElementById("game-id").innerHTML = gameId;
+
+    document.getElementById("prev-trick-south").innerHTML = formatCard(state.previousTrick?.s);
+    document.getElementById("prev-trick-west").innerHTML = formatCard(state.previousTrick?.w);
+    document.getElementById("prev-trick-north").innerHTML = formatCard(state.previousTrick?.n);
+    document.getElementById("prev-trick-east").innerHTML = formatCard(state.previousTrick?.e);
+    document.getElementById("prev-trick-south").parentNode?.classList.toggle("has-prev-trick", !!state.previousTrick?.s)
+    document.getElementById("prev-trick-west").parentNode?.classList.toggle("has-prev-trick", !!state.previousTrick?.w)
+    document.getElementById("prev-trick-north").parentNode?.classList.toggle("has-prev-trick", !!state.previousTrick?.n)
+    document.getElementById("prev-trick-east").parentNode?.classList.toggle("has-prev-trick", !!state.previousTrick?.e)
 
     document.getElementById("trick-south").innerHTML = formatCard(state.trick?.s);
     document.getElementById("trick-west").innerHTML = formatCard(state.trick?.w);

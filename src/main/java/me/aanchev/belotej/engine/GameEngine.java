@@ -32,6 +32,8 @@ class GameEngine {
     public RelPlayer nextTrick(GameState state) {
         if (printOnTrickEnd) printBoard(state); // TODO: will need an event because the web ui cant currently show this as it is too late when the South turn comes
 
+        maintainPreviousTrick(state);
+
         var winner = state.getTrickWinner();
         state.setTrickInitiator(winner);
         state.setNext(winner);
@@ -45,10 +47,20 @@ class GameEngine {
         return winner;
     }
 
+    private static void maintainPreviousTrick(GameState state) {
+        var prev = state.getPreviousTrick();
+        var trick = state.getTrick();
+        prev.setS(trick.getS());
+        prev.setW(trick.getW());
+        prev.setN(trick.getN());
+        prev.setE(trick.getE());
+    }
+
     public void nextRound(GameState state) {
         var winner = nextTrick(state);
         state.getScore().add(10, winner);
 
+        state.getPreviousTrick().reset();
         state.setTrickWinner(null);
         state.setTrickInitiator(null);
         state.setDealer(state.getDealer().next()); // shift the dealer to the next

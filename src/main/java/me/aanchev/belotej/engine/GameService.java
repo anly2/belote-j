@@ -71,6 +71,7 @@ public class GameService {
                 .trump(gameState.getTrump())
                 .challengers(rotate(gameState.getChallengers(), rotation))
                 .trick(rotate(gameState.getTrick(), rotation))
+                .previousTrick(rotate(gameState.getPreviousTrick(), rotation))
                 .claims(rotate(gameState.getCombinations(), rotation)
                         .map(cs -> cs.stream().map(Map.Entry::getKey).toList()))
                 .score(rotate(gameState.getScore(), rotation))

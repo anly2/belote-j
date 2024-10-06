@@ -36,6 +36,7 @@ class GameState {
     private Team challengers = null;
 
 
+    private WNES<Card> previousTrick = wnes();
     private WNES<Card> trick = wnes();
     private RelPlayer trickInitiator = null;
     private RelPlayer trickWinner = null;

@@ -27,6 +27,7 @@ public class PlayerState {
     private Team challengers;
 
     private WNES<Card> trick;
+    private WNES<Card> previousTrick;
     private WNES<List<Claim>> claims;
 
     private Scores score;
