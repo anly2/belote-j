@@ -78,7 +78,7 @@ public class GameLobby {
     }
 
 
-    protected GameState createGame(@Nullable String seed) {
+    GameState createGame(@Nullable String seed) {
         if (seed == null) seed = String.valueOf(new Random().nextLong());
 
         try {
@@ -94,15 +94,29 @@ public class GameLobby {
         return createGame(seed.hashCode());
     }
 
-    protected GameState createGame(long seed) {
+    GameState createGame(long seed) {
         var deck = new ArrayList<>(asList(Card.values()));
         Random random = new Random(seed);
         shuffle(deck, random);
-        return GameState.newGame(deck, random);
+        return new GameState(newGameId(), String.valueOf(seed), deck, random);
     }
-    protected GameState createGame(byte[] seed) {
+    GameState createGame(byte[] arrangement) {
         var deck = new ArrayList<>(asList(Card.values()));
-        deck.sort(comparingInt(card -> indexOf(seed, (byte) card.ordinal())));
-        return GameState.newGame(deck);
+        deck.sort(comparingInt(card -> indexOf(arrangement, (byte) card.ordinal())));
+
+        long seed = new String(arrangement).hashCode();
+        var random = new Random(seed);
+        return new GameState(newGameId(), String.valueOf(seed), deck, random);
+    }
+
+    protected String newGameId() {
+        return UUID.randomUUID().toString();
+    }
+
+
+    public String getGameSeed(String gameId) {
+        var session = gamesByPlayer.values().stream().filter(g -> g.getValue().getGameId().equals(gameId)).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("No such game: " + gameId));
+        return session.getValue().getSeed();
     }
 }

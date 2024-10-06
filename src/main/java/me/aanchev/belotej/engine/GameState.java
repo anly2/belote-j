@@ -5,7 +5,10 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import me.aanchev.belotej.domain.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 import static java.util.Arrays.asList;
 import static me.aanchev.belotej.domain.RelPlayer.e;
@@ -17,8 +20,9 @@ import static me.aanchev.belotej.domain.WNES.wnes;
 @RequiredArgsConstructor
 class GameState {
     private final String gameId;
+    private final String seed;
     private final List<Card> initialDeck;
-    private final Random randomSeed;
+    private final Random random;
 
     private List<String> playerNames = new ArrayList<>(asList(null, null, null, null));
 
@@ -75,14 +79,4 @@ class GameState {
         state.getS().clear();
     }
 
-
-    public static GameState newGame(List<Card> deck) {
-        return newGame(deck, new Random());
-    }
-    public static GameState newGame(List<Card> deck, Random seed) {
-        return newGame(deck, seed, UUID.randomUUID().toString());
-    }
-    public static GameState newGame(List<Card> deck, Random seed, String gameId) {
-        return new GameState(gameId, deck, seed);
-    }
 }

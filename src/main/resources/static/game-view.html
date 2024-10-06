@@ -114,6 +114,13 @@
   const player = new URLSearchParams(window.location.search).get("player");
   const gameId = new URLSearchParams(window.location.search).get("gameId");
 
+  function refreshSeed(gameId) {
+    fetch("/game/" + gameId + "/seed").then(r => r.text()).then(seed => {
+        document.getElementById("game-id").setAttribute('title', seed);
+    });
+  }
+  refreshSeed(gameId);
+
   function play(action) {
     fetch("/" + player + "/play/" + action + "?waitForMyTurn=true").then(r => r.json())
       .then(state => refresh(state));
@@ -175,6 +182,7 @@
   }
 
   refresh();
+
 </script>
 
 </body>

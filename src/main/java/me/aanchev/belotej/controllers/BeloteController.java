@@ -34,6 +34,11 @@ public class BeloteController {
         return gameLobby.createGame(player, seed);
     }
 
+    @GetMapping("/game/{gameId}/seed")
+    public String getGameSeed(@PathVariable String gameId) {
+        return gameLobby.getGameSeed(gameId);
+    }
+
     @GetMapping("/{player}/game/join/{gameId}")
     public String joinGame(
             @PathVariable String player,

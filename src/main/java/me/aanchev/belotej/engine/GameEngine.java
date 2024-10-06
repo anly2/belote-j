@@ -408,10 +408,10 @@ class GameEngine {
     protected void moveHandCardsToDeck(GameState state) {
         // TODO: Apply the "shuffling strategy" onAllPass
         var hands = state.getHands().toList();
-        shuffle(hands, state.getRandomSeed());
+        shuffle(hands, state.getRandom());
         hands.forEach(state.getDeck()::addAll);
 
-        cutDeck(state, state.getRandomSeed().nextInt(state.getDeck().size()));
+        cutDeck(state, state.getRandom().nextInt(state.getDeck().size()));
 
         clear(state.getHands());
     }
