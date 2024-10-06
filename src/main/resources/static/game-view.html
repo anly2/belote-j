@@ -34,7 +34,7 @@
     </style>
 </head>
 <body>
-<div>Game ID: <span id="game-id"></span></div>
+<div>Game ID: <span id="game-id"></span> <a class="new-game" href="/new"><button>New</button></a></div>
 <div>Player: <span id="player-name"></span></div>
 <br>
 <div id="trick_and_bids">
@@ -102,7 +102,7 @@
     document.getElementById("hand").innerHTML = state?.hand?.map(card =>
       "<span class=\"card\">" + formatCard(card) + "</span>").join("\n");
     document.getElementById("actions").innerHTML = actions?.map(action =>
-      "<button onclick=\"play('" + action + "')\">" + formatAction(action) + "</button>").join("\n");
+      "<button onclick=\"play('" + action + "')\">" + (action === "PASS" ? "Pass" : formatAction(action)) + "</button>").join("\n");
   }
 
   function refresh(state) {

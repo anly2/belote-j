@@ -237,16 +237,23 @@ class GameEngine {
             state.getCalls().get(position).add((TrumpCall) action);
             var next = current.next();
             state.setNext(next);
-            if (action != PASS) {
+
+            if (action != PASS || winningCall == null) {
                 state.setWinningCall((TrumpCall) action);
                 winningCall = state.getWinningCall();
+            }
+            if (action != PASS) {
                 state.setChallengers(Team.of(position));
             }
 
-            // If roundabout is complete
-            if (last(state.getCalls().get(next)) != winningCall) return;
 
-            if (winningCall == PASS) { // everyone passed
+            // If roundabout is not complete yet
+            if (last(state.getCalls().get(next)) != winningCall) {
+                return;
+            }
+
+            // everyone passed
+            if (winningCall == PASS) {
                 foldRound(state);
                 return;
             }
@@ -373,6 +380,7 @@ class GameEngine {
 
 
     public void foldRound(GameState state) {
+        log.info("[game:{}] Folding trick because everyone Passed", state.getGameId());
         moveHandCardsToDeck(state);
         clear(state.getCalls());
         state.setWinningCall(null);
