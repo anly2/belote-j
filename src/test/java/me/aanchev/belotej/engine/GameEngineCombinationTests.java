@@ -10,7 +10,7 @@ import static java.util.Arrays.asList;
 import static me.aanchev.belotej.domain.Card.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class GameEngineTest {
+class GameEngineCombinationTests {
     private GameEngine sut = new GameEngine();
 
     @Test

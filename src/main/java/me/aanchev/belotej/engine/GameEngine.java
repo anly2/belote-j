@@ -388,7 +388,7 @@ class GameEngine {
 
         if (askedSuit == suit) {
             if (Trump.isTrump(askedSuit, trump)) {
-                var powerThreshold = getPower(askedCard, trump);
+                var powerThreshold = getPower(trick.get(state.getTrickWinner()), trump);
                 if (getPower(card, trump) <= powerThreshold) {
                     if (hand.stream().anyMatch(c -> askedSuit == getSuit(c) && getPower(c, trump) > powerThreshold)) {
                         return "You have a card with which to raise but you are not playing it!";
