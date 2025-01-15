@@ -75,6 +75,12 @@
         .has-prev-trick .prev-trick {
             display: initial;
         }
+
+        #state_json {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -115,6 +121,9 @@
 <div id="hand"></div>
 
 <div id="actions"></div>
+
+
+<textarea id="state_json"></textarea>
 
 
 <script type="text/javascript">
@@ -179,6 +188,10 @@
     document.getElementById("head-calls").setAttribute('title',
         "Score: (US | THEM)\n"+(state?.score?.us ?? "-")+" | "+(state?.score?.them ?? "-") +
         "\n\nMatch points: (US | THEM)\n"+(state?.gameScore?.us ?? "-")+" | "+(state?.gameScore?.them ?? "-"));
+
+
+
+    document.getElementById("state_json").value = toStateJson(state, actions);
   }
 
   function refresh(state) {
@@ -190,6 +203,50 @@
 
   refresh();
 
+  function toStateJson(state, actions) {
+    const fCard = card => !card ? null : card
+      .replace(/^C/g, "♣")
+      .replace(/^D/g, "♦")
+      .replace(/^H/g, "♥")
+      .replace(/^S/g, "♠");
+    const fSuit = suit => (suit ?? "")
+      .replace(/^C/g, "CLUBS")
+      .replace(/^D/g, "DIAMONDS")
+      .replace(/^H/g, "HEARTS")
+      .replace(/^S/g, "SPADES")
+      .replace(/^A/g, "NO_TRUMPS")
+      .replace(/^J/g, "ALL_TRUMPS")
+    const fAction = action => !action ? null : action === "PASS" ? "PASS" : action.length == 1 ? fSuit(action) : fCard(action);
+    const fBids = bids => bids.map(b => b == "C" ? "CLUBS" : b == "D" ? "DIAMONDS" : b == "H" ? "HEARTS" : b == "S" ? "SPADES" : b == "A" ? "NO_TRUMPS" : b == "J" ? "ALL_TRUMPS" : b)
+    const fClaims = claims => claims;
+    return JSON.stringify(
+        {
+          "bids": {
+            "SOUTH": fBids(state.calls?.s),
+            "WEST": fBids(state.calls?.w),
+            "NORTH": fBids(state.calls?.n),
+            "EAST": fBids(state.calls?.e)
+          },
+          "combination_claims": {
+            "SOUTH": fClaims(state.claims?.s),
+            "WEST": fClaims(state.claims?.w),
+            "NORTH": fClaims(state.claims?.n),
+            "EAST": fClaims(state.claims?.e)
+          },
+          "previous_tricks": ["???"],
+          "trick": {
+            "WEST": fCard(state.trick.w),
+            "NORTH": fCard(state.trick.n),
+            "EAST": fCard(state.trick.e)
+          },
+          "hand": state.hand.map(c => fCard(c)),
+          "trick_initiator": "???",
+          "trick_asking_suit": "???",
+          "trick_winning_card": "???",
+          "possible_actions": actions?.map(a => fAction(a))
+        }
+        , null, 2)
+  }
 </script>
 
 </body>
