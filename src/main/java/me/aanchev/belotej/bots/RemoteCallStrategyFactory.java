@@ -32,7 +32,7 @@ public class RemoteCallStrategyFactory {
             try {
                 String body = objectMapper.writeValueAsString(payload);
                 log.debug("Attempting Remote Call Bot play via: {}{}", remoteTarget,
-                        log.isTraceEnabled() ? "body: " + body : "");
+                        log.isTraceEnabled() ? " body: " + body : "");
                 var req = HttpRequest.newBuilder().uri(uri).POST(ofString(body, UTF_8)).build();
                 var response = httpClient.send(req, BodyHandlers.ofString()).body();
                 log.debug("Received Remote Call Bot play: {}", response);
