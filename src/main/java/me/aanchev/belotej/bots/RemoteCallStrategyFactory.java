@@ -66,7 +66,7 @@ class RemoteCallStrategy implements BotStrategy {
         }
         if (prevTrick != null) previousTricks.add(prevTrick);
 
-        var stateInfo = reshapeState(state);
+        var stateInfo = reshapeState(state, validActions);
 
         if (validActions.size() == 1) {
             log.debug("Only one valid action, so avoiding remote call and playing it directly.");
@@ -113,7 +113,7 @@ class RemoteCallStrategy implements BotStrategy {
                 "It is neither an index of nor a valid string representation of a valid action to play:\n\t" + _response);
     }
 
-    private LinkedHashMap<String, Object> reshapeState(PlayerState state) {
+    private LinkedHashMap<String, Object> reshapeState(PlayerState state, List<GameAction> validActions) {
         var info = new LinkedHashMap<String, Object>();
 
         info.put("bids", write(state.getCalls(), calls ->
@@ -135,7 +135,7 @@ class RemoteCallStrategy implements BotStrategy {
 
         info.put("hand", remap(state.getHand(), RemoteCallStrategy::write));
 
-        info.put("possible_actions", remap(state.getPlayable(), RemoteCallStrategy::write));
+        info.put("possible_actions", remap(validActions, RemoteCallStrategy::write));
 
         return info;
     }
