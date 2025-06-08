@@ -1,0 +1,5 @@
+###
+POST http://192.168.1.202:8080/play
+Content-Type: application/json
+
+{"bids":{"SOUTH":[],"WEST":[],"NORTH":["PASS"],"EAST":["PASS"]},"current_trump":null,"combination_claims":{"SOUTH":[],"WEST":[],"NORTH":[],"EAST":[]},"previous_tricks":[{"SOUTH":null,"WEST":null,"NORTH":null,"EAST":null}],"trick":{"SOUTH":null,"WEST":null,"NORTH":null,"EAST":null},"trick_initiator":null,"trick_asking_suit":null,"trick_current_strongest_card":null,"trick_current_strongest_player":null,"hand":["A♤","9♦","J♥","9♧","7♤"],"possible_actions":null}

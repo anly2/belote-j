@@ -11,6 +11,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
+import static java.util.Optional.ofNullable;
 import static me.aanchev.belotej.domain.WNES.wnes;
 import static me.aanchev.utils.LatchUtils.await;
 
@@ -73,8 +74,8 @@ public class GameService {
                 .challengers(rotate(gameState.getChallengers(), rotation))
                 .trick(rotate(trick, rotation))
                 .trickInitiator(rotate(gameState.getTrickInitiator(), rotation))
-                .trickAskingSuit(trick == null || gameState.getTrickInitiator() == null ? null :
-                        trick.get(gameState.getTrickInitiator()).getSuit())
+                .trickAskingSuit(trick == null ? null :
+                        ofNullable(gameState.getTrickInitiator()).map(trick::get).map(a -> a.getSuit()).orElse(null))
                 .trickCurrentStrongestPlayer(rotate(gameState.getTrickWinner(), rotation))
                 .trickCurrentStrongestCard(trick == null || gameState.getTrickWinner() == null ? null :
                         trick.get(gameState.getTrickWinner()))

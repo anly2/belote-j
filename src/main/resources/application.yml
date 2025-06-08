@@ -12,3 +12,7 @@ micronaut:
       game:
         paths: classpath:static
         mapping: /ui/**
+
+logger:
+  levels:
+    me.aanchev: DEBUG

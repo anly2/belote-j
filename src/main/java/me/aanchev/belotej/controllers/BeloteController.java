@@ -86,7 +86,7 @@ public class BeloteController {
             @RequestParam(defaultValue = "bot:PassThenRandom(123):") String botPrefix,
             @RequestParam(required = false) String south,
             @RequestParam(required = false) String west,
-            @Parameter(example = "bot:RemoteCall(http://192.168.0.2:8080/play)")
+            @Parameter(example = "bot:RemoteCall(http://192.168.0.2:8000/play)")
             @RequestParam(required = false) String north,
             @RequestParam(required = false) String east
     ) {

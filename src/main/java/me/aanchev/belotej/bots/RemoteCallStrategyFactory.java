@@ -12,10 +12,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 
 import static java.lang.Integer.parseInt;
@@ -31,7 +28,7 @@ public class RemoteCallStrategyFactory {
 
     public BotStrategy create(String remoteTarget) {
         var uri = URI.create(remoteTarget);
-        return new RemoteCallStrategy(payload -> {
+        return new RemoteCallStrategy(objectMapper, payload -> {
             try {
                 String body = objectMapper.writeValueAsString(payload);
                 log.debug("Attempting Remote Call Bot play via: {}{}", remoteTarget,
@@ -53,6 +50,7 @@ public class RemoteCallStrategyFactory {
 @Slf4j
 @RequiredArgsConstructor
 class RemoteCallStrategy implements BotStrategy {
+    private final ObjectMapper objectMapper;
     private final Function<Object, String> callingRemote;
 
     private String prevGameId = null;
@@ -70,10 +68,33 @@ class RemoteCallStrategy implements BotStrategy {
 
         var stateInfo = reshapeState(state);
 
-        var response = callingRemote.apply(stateInfo);
+        if (validActions.size() == 1) {
+            log.debug("Only one valid action, so avoiding remote call and playing it directly.");
+            return validActions.getFirst();
+        }
+
+        var _response = callingRemote.apply(stateInfo);
+        var response = _response;
+
+        try {
+            var json = objectMapper.readValue(response, Map.class);
+            var opt = json.get("option");
+            if (opt instanceof String s) {
+                response = s.trim();
+            }
+            if (opt instanceof Integer i) {
+                response = String.valueOf(i);
+            }
+        }
+        catch (Exception ignore) {
+        }
+
 
         try {
             return validActions.get(parseInt(response));
+        }
+        catch (IndexOutOfBoundsException e) {
+            throw new IllegalStateException("Attempted to play an unavailable option! Was it a zero-based index? Attempt: " + response + "; Valid options: " + validActions);
         }
         catch (Exception ignore) {}
 
@@ -82,11 +103,14 @@ class RemoteCallStrategy implements BotStrategy {
             if (validActions.contains(desired)) {
                 return desired;
             }
+            else {
+                throw new IllegalStateException("Attempted to play an unavailable option! Was it a zero-based index? Attempt: " + response + " (" + desired + "); Valid options: " + validActions);
+            }
         }
         catch (Exception ignore) {}
 
         throw new IllegalStateException("Could not handle remote call response!" +
-                "It is neither an index of nor a valid string representation of a valid action to play!");
+                "It is neither an index of nor a valid string representation of a valid action to play:\n\t" + _response);
     }
 
     private LinkedHashMap<String, Object> reshapeState(PlayerState state) {
