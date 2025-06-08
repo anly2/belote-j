@@ -152,10 +152,17 @@ class RemoteCallStrategy implements BotStrategy {
     private static <E> Object write(WNES<E> value, Function<E, ?> remapper) {
         if (value == null) return null;
         var result = new LinkedHashMap<String, Object>();
-        result.put("SOUTH", remapper.apply(value.getW()));
-        result.put("WEST", remapper.apply(value.getW()));
-        result.put("NORTH", remapper.apply(value.getN()));
-        result.put("EAST", remapper.apply(value.getE()));
+        E west = value.getW();
+        E north = value.getN();
+        E east = value.getE();
+        E south = value.getS();
+        if (west == null && north == null && east == null && south == null) {
+            return null;
+        }
+        result.put("SOUTH", remapper.apply(south));
+        result.put("WEST", remapper.apply(west));
+        result.put("NORTH", remapper.apply(north));
+        result.put("EAST", remapper.apply(east));
         return result;
     }
     private static Object write(GameAction value) {
