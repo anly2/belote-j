@@ -182,10 +182,10 @@ class RemoteCallStrategy implements BotStrategy {
         if (value == null) return null;
         return value.name()
                 .replaceFirst("^([CDHS])(.+)$", "$2$1")
-                .replace("C", "♧")
-                .replace("D", "♦")
-                .replace("H", "♥")
-                .replace("S", "♤");
+                .replaceFirst("S$", " of SPADES") // must be first
+                .replaceFirst("C$", " of CLUBS")
+                .replaceFirst("D$", " of DIAMONDS")
+                .replaceFirst("H$", " of HEARTS");
     }
 
     private static Object write(Claim value) {
@@ -210,6 +210,10 @@ class RemoteCallStrategy implements BotStrategy {
 
     private static GameAction parseGameAction(String value) {
         return GameAction.of(value
+                .replace(" of CLUBS", "C")
+                .replace(" of DIAMONDS", "D")
+                .replace(" of HEARTS", "H")
+                .replace(" of SPADES", "S")
                 .replace("♣", "C").replace("♧", "C")
                 .replace("♦", "D").replace("♢", "D")
                 .replace("♥", "H").replace("♡", "H")
