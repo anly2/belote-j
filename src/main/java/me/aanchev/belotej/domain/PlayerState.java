@@ -30,6 +30,11 @@ public class PlayerState {
     private WNES<Card> previousTrick;
     private WNES<List<Claim>> claims;
 
+    private RelPlayer trickInitiator;
+    private Trump trickAskingSuit;
+    private RelPlayer trickCurrentStrongestPlayer;
+    private Card trickCurrentStrongestCard;
+
     private Scores score;
     private Scores gameScore;
 }

@@ -63,6 +63,7 @@ public class GameService {
 
     protected PlayerState getPlayerState(GameState gameState, RelPlayer position) {
         int rotation = position.getIndex();
+        WNES<Card> trick = gameState.getTrick();
         return PlayerState.builder()
                 .dealer(rotate(gameState.getDealer(), rotation))
                 .playerInTurn(rotate(gameState.getNext(), rotation))
@@ -70,7 +71,13 @@ public class GameService {
                 .calls(rotate(gameState.getCalls(), rotation))
                 .trump(gameState.getTrump())
                 .challengers(rotate(gameState.getChallengers(), rotation))
-                .trick(rotate(gameState.getTrick(), rotation))
+                .trick(rotate(trick, rotation))
+                .trickInitiator(rotate(gameState.getTrickInitiator(), rotation))
+                .trickAskingSuit(trick == null || gameState.getTrickInitiator() == null ? null :
+                        trick.get(gameState.getTrickInitiator()).getSuit())
+                .trickCurrentStrongestPlayer(rotate(gameState.getTrickWinner(), rotation))
+                .trickCurrentStrongestCard(trick == null || gameState.getTrickWinner() == null ? null :
+                        trick.get(gameState.getTrickWinner()))
                 .previousTrick(rotate(gameState.getPreviousTrick(), rotation))
                 .claims(rotate(gameState.getCombinations(), rotation)
                         .map(cs -> cs.stream().map(Map.Entry::getKey).toList()))
@@ -117,11 +124,13 @@ public class GameService {
 
 
     public static RelPlayer rotate(RelPlayer source, int offset) {
+        if (source == null) return null;
         return RelPlayer.get(source.getIndex() + offset);
     }
 
 
     public static Team rotate(Team source, int rotation) {
+        if (source == null) return null;
         return switch (rotation % 4) {
             case 0, 2 -> source;
             case 1, 3 -> Team.other(source);
@@ -130,6 +139,7 @@ public class GameService {
     }
 
     public static <E> WNES<E> rotate(WNES<E> source, int rotation) {
+        if (source == null) return null;
         return switch (rotation % 4) {
             case 0 -> wnes(source.getW(), source.getN(), source.getE(), source.getS());
             case 1 -> wnes(source.getN(), source.getE(), source.getS(), source.getW());
@@ -141,6 +151,7 @@ public class GameService {
 
 
     public static Scores rotate(Scores source, int rotation) {
+        if (source == null) return null;
         return switch (rotation % 4) {
             case 0, 2 -> new Scores(source.getUs(), source.getThem());
             case 1, 3 -> new Scores(source.getThem(), source.getUs());

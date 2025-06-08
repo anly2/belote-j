@@ -2,6 +2,7 @@ package me.aanchev.belotej.controllers;
 
 
 import io.micronaut.http.HttpResponse;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.aanchev.belotej.bots.BotsService;
@@ -85,6 +86,7 @@ public class BeloteController {
             @RequestParam(defaultValue = "bot:PassThenRandom(123):") String botPrefix,
             @RequestParam(required = false) String south,
             @RequestParam(required = false) String west,
+            @Parameter(example = "bot:RemoteCall(http://192.168.0.2:8080/play)")
             @RequestParam(required = false) String north,
             @RequestParam(required = false) String east
     ) {
