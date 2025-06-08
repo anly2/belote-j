@@ -94,6 +94,8 @@ Sometimes, guessing that the opponents have a strong card but not others from th
  Knowing that the opponent has to meet that, and if a trump suit also raise, can allow you to fish out the strong cards early.
  Then with those out of play for the round, your relatively weaker cards can become the strongest left and win tricks.
 
+Please consider that tricks can be impossible to win, if the currently strongest card has already been played.
+And please be very careful when evaluating the strength of cards to always account for whether the suit is currently a trump or not.
 
 
 You must output your reasoning and decision-making!
