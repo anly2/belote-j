@@ -323,7 +323,9 @@ class GameEngine {
             assertCanPlay(state, card, position);
         }
 
-        state.getCombinations().get(position).addAll(findClaims(hand, card, trump));
+        if (trump != Trump.A) { // no claims on NO_TRUMPS
+            state.getCombinations().get(position).addAll(findClaims(hand, card, trump));
+        }
 
         trick.set(position, card);
         hand.remove(card);
