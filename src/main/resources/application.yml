@@ -13,6 +13,8 @@ micronaut:
         paths: classpath:static
         mapping: /ui/**
 
-logger:
-  levels:
-    me.aanchev: DEBUG
+### SOMEHOW this breaks the logging - no appender on the ROOT logger ?!?!?!
+### SO done in the actual logback.xml config
+#logger:
+#  levels:
+#    me.aanchev: TRACE
