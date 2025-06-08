@@ -1,6 +1,10 @@
 package me.aanchev.belotej.bots;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.annotation.Serdeable;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.aanchev.belotej.domain.*;
@@ -113,37 +117,66 @@ class RemoteCallStrategy implements BotStrategy {
                 "It is neither an index of nor a valid string representation of a valid action to play:\n\t" + _response);
     }
 
-    private LinkedHashMap<String, Object> reshapeState(PlayerState state, List<GameAction> validActions) {
-        var info = new LinkedHashMap<String, Object>();
+    private StateInfo reshapeState(PlayerState state, List<GameAction> validActions) {
+        var info = new StateInfo();
 
-        info.put("bids", write(state.getCalls(), calls ->
+        info.setBids(write(state.getCalls(), calls ->
                 remap(calls, RemoteCallStrategy::write)));
 
-        info.put("current_trump", write(state.getTrump()));
+        info.setCurrentTrump(write(state.getTrump()));
 
-        info.put("combination_claims", write(state.getClaims(), claims ->
+        info.setClaims(write(state.getClaims(), claims ->
                 remap(claims, RemoteCallStrategy::write)));
 
-        info.put("previous_tricks", remap(previousTricks, trick ->
+        info.setPreviousTricks(remap(previousTricks, trick ->
                 write(trick, RemoteCallStrategy::write)));
 
-        info.put("trick", write(state.getTrick(), RemoteCallStrategy::write));
-        info.put("trick_initiator", write(state.getTrickInitiator()));
-        info.put("trick_asking_suit", write(state.getTrickAskingSuit()));
-        info.put("trick_current_strongest_card", write(state.getTrickCurrentStrongestCard()));
-        info.put("trick_current_strongest_player", write(state.getTrickCurrentStrongestPlayer()));
+        info.setTrick(write(state.getTrick(), RemoteCallStrategy::write));
+        info.setTrickInitiator(write(state.getTrickInitiator()));
+        info.setTrickAskingSuit(write(state.getTrickAskingSuit()));
+        info.setTrickCurrentStrongestCard(write(state.getTrickCurrentStrongestCard()));
+        info.setTrickCurrentStrongestPlayer(write(state.getTrickCurrentStrongestPlayer()));
 
-        info.put("hand", remap(state.getHand(), RemoteCallStrategy::write));
+        info.setHand(remap(state.getHand(), RemoteCallStrategy::write));
 
-        info.put("possible_actions", remap(validActions, RemoteCallStrategy::write));
+        info.setPossibleActions(remap(validActions, RemoteCallStrategy::write));
 
         return info;
     }
 
+    @Data
+    @Serdeable
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class StateInfo {
+        private Object bids;
+
+        @JsonProperty("current_trump")
+        private Object currentTrump;
+        @JsonProperty("combination_claims")
+        private Object claims;
+        @JsonProperty("previous_tricks")
+        private Object previousTricks;
+        private Object trick;
+        @JsonProperty("trick_initiator")
+        private Object trickInitiator;
+        @JsonProperty("trick_asking_suit")
+        private Object trickAskingSuit;
+        @JsonProperty("trick_current_strongest_card")
+        private Object trickCurrentStrongestCard;
+        @JsonProperty("trick_current_strongest_player")
+        private Object trickCurrentStrongestPlayer;
+
+        private Object hand;
+
+        @JsonProperty("possible_actions")
+        private Object possibleActions;
+    }
+
+
 
     private static <E, R> List<R> remap(List<E> items, Function<E, R> remapper) {
         if (items == null) return null;
-        return items.stream().map(remapper).toList();
+        return items.stream().map(remapper).filter(Objects::nonNull).toList();
     }
 
     private static Object write(WNES<?> value) {
