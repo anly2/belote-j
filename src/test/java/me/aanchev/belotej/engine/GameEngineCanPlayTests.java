@@ -14,7 +14,7 @@ class GameEngineCanPlayTests {
 
     @Test
     public void canPlay_suitTrump_teammateHolding_shouldStillRaise() {
-        var state = new GameLobby(sut).createGame(123);
+        var state = new GameLobby(sut).createGame(123, "1");
 
         state.setTrump(Trump.S);
         state.setTrick(WNES.wnes(S8, S9, SK, null));

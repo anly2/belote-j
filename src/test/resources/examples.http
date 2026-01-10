@@ -15,3 +15,8 @@ GET http://localhost:8080/aa/state
 
 ###
 GET http://localhost:8080/yy/state
+
+
+###
+GET http://localhost:8080:/ui/game-view.html
+# http://192.168.1.85:8080/ui/game-view.html?gameId=e1a4104a-4594-4fd9-a9a9-174605392ec5&player=yy

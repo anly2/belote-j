@@ -30,9 +30,10 @@ public class BeloteController {
     @GetMapping("/{player}/game/create")
     public String createGame(
             @PathVariable String player,
+            @RequestParam(required = false) String gameId, // This is convenient but before when it was forcebly UUID it could act like a password
             @RequestParam(required = false) String seed
     ) {
-        return gameLobby.createGame(player, seed);
+        return gameLobby.createGame(player, seed, gameId);
     }
 
     @GetMapping("/game/{gameId}/seed")
@@ -83,6 +84,7 @@ public class BeloteController {
     @GetMapping("/new")
     public HttpResponse<String> newGame(
             @RequestParam(required = false) String seed,
+            @RequestParam(required = false) String gameName,  // This is convenient but before when it was forcebly UUID it could act like a password
             @RequestParam(defaultValue = "bot:PassThenRandom(123):") String botPrefix,
             @RequestParam(required = false) String south,
             @RequestParam(required = false) String west,
@@ -96,7 +98,7 @@ public class BeloteController {
         if (east == null) east = botPrefix + UUID.randomUUID();
 
 
-        var gameId = gameLobby.createGame(south, seed, true);
+        var gameId = gameLobby.createGame(south, seed, gameName, true);
         engage("wait".equals(west) ? null : west, gameId);
         engage("wait".equals(north) ? null : north, gameId);
         engage("wait".equals(east) ? null : east, gameId);

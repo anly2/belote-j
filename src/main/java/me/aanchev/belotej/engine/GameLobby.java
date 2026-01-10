@@ -30,11 +30,11 @@ public class GameLobby {
     }
 
 
-    public String createGame(String player, @Nullable String seed) {
-        return createGame(player, seed, true);
+    public String createGame(String player, @Nullable String seed, @Nullable String gameId) {
+        return createGame(player, seed, gameId, true);
     }
-    public String createGame(String player, @Nullable String seed, boolean autostart) {
-        GameState game = createGame(seed);
+    public String createGame(String player, @Nullable String seed, @Nullable String gameId, boolean autostart) {
+        GameState game = createGame(seed, gameId);
         addToGame(game, player, 0);
         log.info("Player '{}' created an new game: {}", player, game.getGameId());
         if (autostart) autostartGames.add(game.getGameId());
@@ -78,35 +78,38 @@ public class GameLobby {
     }
 
 
-    GameState createGame(@Nullable String seed) {
+    GameState createGame(@Nullable String seed, @Nullable String gameId) {
         if (seed == null) seed = String.valueOf(new Random().nextLong());
 
         try {
-            return createGame(Long.parseLong(seed));
+            return createGame(Long.parseLong(seed), gameId);
         } catch (Exception ignore) {}
 
         try {
             byte[] bytes = Base64.getDecoder().decode(seed);
             if (bytes.length != 32) throw new IllegalArgumentException("Not a byte array holding the card indices");
-            return createGame(bytes);
+            return createGame(bytes, gameId);
         } catch (Exception ignore) {}
 
-        return createGame(seed.hashCode());
+        return createGame(seed.hashCode(), gameId);
     }
 
-    GameState createGame(long seed) {
+    GameState createGame(long seed, @Nullable String gameId) {
         var deck = new ArrayList<>(asList(Card.values()));
         Random random = new Random(seed);
         shuffle(deck, random);
-        return new GameState(newGameId(), String.valueOf(seed), deck, random);
+        var id = gameId == null ? newGameId() : gameId;
+        return new GameState(id, String.valueOf(seed), deck, random);
     }
-    GameState createGame(byte[] arrangement) {
+    GameState createGame(byte[] arrangement, @Nullable String gameId) {
         var deck = new ArrayList<>(asList(Card.values()));
         deck.sort(comparingInt(card -> indexOf(arrangement, (byte) card.ordinal())));
 
         long seed = new String(arrangement).hashCode();
         var random = new Random(seed);
-        return new GameState(newGameId(), String.valueOf(seed), deck, random);
+
+        var id = gameId == null ? newGameId() : gameId;
+        return new GameState(id, String.valueOf(seed), deck, random);
     }
 
     protected String newGameId() {
