@@ -12,6 +12,7 @@ micronaut:
       game:
         paths: classpath:static
         mapping: /ui/**
+        welcome-file: game-view.html
 
 ### SOMEHOW this breaks the logging - no appender on the ROOT logger ?!?!?!
 ### SO done in the actual logback.xml config
