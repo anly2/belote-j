@@ -124,36 +124,36 @@ public class GameService {
     }
 
 
-    public static RelPlayer rotate(RelPlayer source, int offset) {
+    public static RelPlayer rotate(RelPlayer source, int observerIndex) {
         if (source == null) return null;
-        return RelPlayer.get(source.getIndex() + offset);
+        return RelPlayer.get(source.getIndex() - observerIndex + 4);
     }
 
 
-    public static Team rotate(Team source, int rotation) {
+    public static Team rotate(Team source, int observerIndex) {
         if (source == null) return null;
-        return switch (rotation % 4) {
+        return switch (observerIndex % 4) {
             case 0, 2 -> source;
             case 1, 3 -> Team.other(source);
             default -> null; //not possible
         };
     }
 
-    public static <E> WNES<E> rotate(WNES<E> source, int rotation) {
+    public static <E> WNES<E> rotate(WNES<E> source, int observerIndex) {
         if (source == null) return null;
-        return switch (rotation % 4) {
+        return switch (observerIndex % 4) {
             case 0 -> wnes(source.getW(), source.getN(), source.getE(), source.getS());
             case 1 -> wnes(source.getN(), source.getE(), source.getS(), source.getW());
             case 2 -> wnes(source.getE(), source.getS(), source.getW(), source.getN());
             case 3 -> wnes(source.getS(), source.getW(), source.getN(), source.getE());
-            default -> null; //not possible
+            default -> null;
         };
     }
 
 
-    public static Scores rotate(Scores source, int rotation) {
+    public static Scores rotate(Scores source, int observerIndex) {
         if (source == null) return null;
-        return switch (rotation % 4) {
+        return switch (observerIndex % 4) {
             case 0, 2 -> new Scores(source.getUs(), source.getThem());
             case 1, 3 -> new Scores(source.getThem(), source.getUs());
             default -> null; //not possible

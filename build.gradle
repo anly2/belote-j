@@ -33,6 +33,7 @@ dependencies {
     runtimeOnly("org.yaml:snakeyaml")
     testAnnotationProcessor("io.micronaut.spring:micronaut-spring-boot-annotation")
     testAnnotationProcessor("io.micronaut.spring:micronaut-spring-web-annotation")
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
     testImplementation("io.micronaut:micronaut-http-client")
     testImplementation("org.assertj:assertj-core")
     testImplementation("org.mockito:mockito-core")
