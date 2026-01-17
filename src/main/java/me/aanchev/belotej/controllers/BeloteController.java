@@ -2,7 +2,14 @@ package me.aanchev.belotej.controllers;
 
 
 import io.micronaut.http.HttpResponse;
+import io.micronaut.http.annotation.Controller;
+import io.micronaut.http.annotation.Get;
+import io.micronaut.http.annotation.PathVariable;
+import io.micronaut.http.annotation.QueryValue;
+import io.micronaut.scheduling.TaskExecutors;
+import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.inject.Named;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.aanchev.belotej.bots.BotsService;
@@ -10,39 +17,40 @@ import me.aanchev.belotej.domain.GameAction;
 import me.aanchev.belotej.domain.PlayerState;
 import me.aanchev.belotej.engine.GameLobby;
 import me.aanchev.belotej.engine.GameService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 @Slf4j
-@RestController
+@Controller
 @RequiredArgsConstructor
 public class BeloteController {
     private final GameLobby gameLobby;
     private final GameService gameService;
     private final BotsService bots;
 
-    @GetMapping("/{player}/game/create")
+    @Named(TaskExecutors.BLOCKING)
+    private final ExecutorService executorService;
+
+
+    @Get("/{player}/game/create")
     public String createGame(
             @PathVariable String player,
-            @RequestParam(required = false) String gameId, // This is convenient but before when it was forcebly UUID it could act like a password
-            @RequestParam(required = false) String seed
+            @QueryValue(defaultValue = "") String gameId, // This is convenient but before when it was forcebly UUID it could act like a password
+            @QueryValue(defaultValue = "") String seed
     ) {
-        return gameLobby.createGame(player, seed, gameId);
+        return gameLobby.createGame(player, "".equals(seed) ? null : seed, "".equals(gameId) ? null : gameId);
     }
 
-    @GetMapping("/game/{gameId}/seed")
+    @Get("/game/{gameId}/seed")
     public String getGameSeed(@PathVariable String gameId) {
         return gameLobby.getGameSeed(gameId);
     }
 
-    @GetMapping("/{player}/game/join/{gameId}")
+    @Get("/{player}/game/join/{gameId}")
     public String joinGame(
             @PathVariable String player,
             @PathVariable String gameId
@@ -50,7 +58,7 @@ public class BeloteController {
         return gameLobby.joinGame(player, gameId);
     }
 
-    @GetMapping("/{player}/game/start/{gameId}")
+    @Get("/{player}/game/start/{gameId}")
     public String startGame(
             @PathVariable String player,
             @PathVariable String gameId
@@ -58,42 +66,44 @@ public class BeloteController {
         return gameLobby.startGame(player, gameId);
     }
 
-    @GetMapping("/{player}/state")
+    @ExecuteOn(TaskExecutors.BLOCKING)
+    @Get("/{player}/state")
     public CompletableFuture<PlayerState> state(
             @PathVariable String player,
-            @RequestParam(defaultValue = "false") boolean waitForMyTurn
+            @QueryValue(defaultValue = "false") boolean waitForMyTurn
     ) {
-        return CompletableFuture.supplyAsync(() -> gameService.getState(player, waitForMyTurn));
+        return CompletableFuture.supplyAsync(() -> gameService.getState(player, waitForMyTurn), executorService);
     }
 
-    @GetMapping("/{player}/play/{action}")
+    @ExecuteOn(TaskExecutors.BLOCKING)
+    @Get("/{player}/play/{action}")
     public CompletableFuture<PlayerState> play(
             @PathVariable String player,
             @PathVariable String action,
-            @RequestParam(defaultValue = "false") boolean waitForMyTurn
+            @QueryValue(defaultValue = "false") boolean waitForMyTurn
     ) {
         log.info("Player '{}' is playing: {}", player, action);
         return CompletableFuture.supplyAsync(() -> {
             gameService.play(player, GameAction.of(action), waitForMyTurn);
             return gameService.getState(player, waitForMyTurn);
-        });
+        }, executorService);
     }
 
-    @GetMapping("/{player}/play")
+    @Get("/{player}/play")
     public List<GameAction> playable(@PathVariable String player) {
         return gameService.getValidActions(player);
     }
 
-    @GetMapping("/new")
+    @Get("/new")
     public HttpResponse<String> newGame(
-            @RequestParam(required = false) String seed,
-            @RequestParam(required = false) String gameName,  // This is convenient but before when it was forcebly UUID it could act like a password
-            @RequestParam(defaultValue = "bot:PassThenRandom(123):") String botPrefix,
-            @RequestParam(required = false) String south,
-            @RequestParam(required = false) String west,
+            @QueryValue(defaultValue = "") String seed,
+            @QueryValue(defaultValue = "") String gameName,  // This is convenient but before when it was forcebly UUID it could act like a password
+            @QueryValue(defaultValue = "bot:PassThenRandom(123):") String botPrefix,
+            @QueryValue(defaultValue = "") String south,
+            @QueryValue(defaultValue = "") String west,
             @Parameter(example = "bot:RemoteCall(http://192.168.0.2:8000/play)")
-            @RequestParam(required = false) String north,
-            @RequestParam(required = false) String east
+            @QueryValue(defaultValue = "") String north,
+            @QueryValue(defaultValue = "") String east
     ) {
         if (south == null) south = UUID.randomUUID().toString();
         if (west == null) west = botPrefix + UUID.randomUUID();
