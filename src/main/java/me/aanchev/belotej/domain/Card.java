@@ -26,7 +26,7 @@ public enum Card implements GameAction {
         return getValue(this, trump);
     }
     public static int getValue(Card card, Trump trump) {
-        return card.ordinal() + getValueBoost(card, trump);
+        return (card.getSuit().ordinal() * 1000) + card.ordinal() + getValueBoost(card, trump);
     }
 
     public static int getValueBoost(Card card, Trump trump) {
