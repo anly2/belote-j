@@ -45,7 +45,15 @@
         #actions {
             margin-top: 0.5em;
         }
-        #actions::before {
+        #actions:has(button[disabled]) {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        #actions:has(button[disabled])::before {
+            content: "Waiting... ";
+            color: gray;
+        }
+        #actions:not(:has(button[disabled]))::before {
             content: "Play: ";
             display: block;
         }
@@ -199,7 +207,7 @@
     document.getElementById("hand").innerHTML = state?.hand?.sort()?.map(card =>
       "<span class=\"card\">" + formatCard(card) + "</span>").join("\n");
     document.getElementById("actions").innerHTML = (actions || [])?.map(action =>
-      "<button onclick=\"play('" + action + "')\">" + (action === "PASS" ? "<span class='action pass'>Pass</span>" : formatAction(action)) + "</button>").join("\n");
+      "<button onclick=\"play('" + action + "')\"" + (state.playerInTurn !== 's' ? " disabled" : "") + ">" + (action === "PASS" ? "<span class='action pass'>Pass</span>" : formatAction(action)) + "</button>").join("\n");
 
     document.getElementById("head-calls").setAttribute('title',
         "Score: (US | THEM)\n"+(state?.score?.us ?? "-")+" | "+(state?.score?.them ?? "-") +
@@ -208,6 +216,10 @@
 
 
     document.getElementById("state_json").value = toStateJson(state, actions);
+
+    if (state.playerInTurn !== 's') {
+        fetch("/" + player + "/state?waitForMyTurn=true").then(r => r.json()).then(s => refresh(s));
+    }
   }
 
   function refresh(state) {
