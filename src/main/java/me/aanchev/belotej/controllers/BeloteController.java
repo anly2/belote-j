@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RestController
@@ -58,22 +59,24 @@ public class BeloteController {
     }
 
     @GetMapping("/{player}/state")
-    public PlayerState state(
+    public CompletableFuture<PlayerState> state(
             @PathVariable String player,
             @RequestParam(defaultValue = "false") boolean waitForMyTurn
     ) {
-        return gameService.getState(player, waitForMyTurn);
+        return CompletableFuture.supplyAsync(() -> gameService.getState(player, waitForMyTurn));
     }
 
     @GetMapping("/{player}/play/{action}")
-    public PlayerState play(
+    public CompletableFuture<PlayerState> play(
             @PathVariable String player,
             @PathVariable String action,
             @RequestParam(defaultValue = "false") boolean waitForMyTurn
     ) {
         log.info("Player '{}' is playing: {}", player, action);
-        gameService.play(player, GameAction.of(action), waitForMyTurn);
-        return gameService.getState(player, waitForMyTurn);
+        return CompletableFuture.supplyAsync(() -> {
+            gameService.play(player, GameAction.of(action), waitForMyTurn);
+            return gameService.getState(player, waitForMyTurn);
+        });
     }
 
     @GetMapping("/{player}/play")
