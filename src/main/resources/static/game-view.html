@@ -189,10 +189,10 @@
     document.getElementById("prev-trick-north").parentNode?.classList.toggle("has-prev-trick", !!state.previousTrick?.n)
     document.getElementById("prev-trick-east").parentNode?.classList.toggle("has-prev-trick", !!state.previousTrick?.e)
 
-    document.getElementById("trick-south").innerHTML = formatCard(state.trick?.s);
-    document.getElementById("trick-west").innerHTML = formatCard(state.trick?.w);
-    document.getElementById("trick-north").innerHTML = formatCard(state.trick?.n);
-    document.getElementById("trick-east").innerHTML = formatCard(state.trick?.e);
+    document.getElementById("trick-south").innerHTML = (state.trickInitiator === 's' ? "<small>^</small> " : "") + formatCard(state.trick?.s);
+    document.getElementById("trick-west").innerHTML = (state.trickInitiator === 'w' ? "<small>^</small> " : "") + formatCard(state.trick?.w);
+    document.getElementById("trick-north").innerHTML = (state.trickInitiator === 'n' ? "<small>^</small> " : "") + formatCard(state.trick?.n);
+    document.getElementById("trick-east").innerHTML = (state.trickInitiator === 'e' ? "<small>^</small> " : "") + formatCard(state.trick?.e);
 
     document.getElementById("bids-south").innerHTML = formatBids(state.calls?.s);
     document.getElementById("bids-west").innerHTML = formatBids(state.calls?.w);
