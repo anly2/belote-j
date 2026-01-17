@@ -26,7 +26,7 @@ public class GameSimulation {
     public void runSingleGame_allHumans() {
         var seed = "123";
 
-        var gameId = controller.createGame(me, seed);
+        var gameId = controller.createGame(me, null, seed);
         controller.joinGame(foe1, gameId);
         controller.joinGame(friend, gameId);
         controller.joinGame(foe2, gameId);
