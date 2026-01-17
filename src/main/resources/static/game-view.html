@@ -51,9 +51,10 @@
         }
         #actions:has(button[disabled])::before {
             content: "Waiting... ";
+            display: block;
             color: gray;
         }
-        #actions:not(:has(button[disabled]))::before {
+        #actions:has(button:not([disabled]))::before {
             content: "Play: ";
             display: block;
         }
