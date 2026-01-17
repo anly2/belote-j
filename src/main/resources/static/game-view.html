@@ -69,6 +69,18 @@
             color: black;
         }
 
+
+        *:not(:has(>.suit.clubs)) + *:has(>.suit.clubs) ,
+        *:not(:has(>.suit.diamonds)) + *:has(>.suit.diamonds) ,
+        *:not(:has(>.suit.hearts)) + *:has(>.suit.hearts) ,
+        *:not(:has(>.suit.spades)) + *:has(>.suit.spades) {
+            margin-left: 1em;
+        }
+        *:has(>.action.pass) ~ *:has(>.suit) {
+            margin-left: 0 !important;
+        }
+
+
         .prev-trick {
             display: none;
         }
@@ -187,7 +199,7 @@
     document.getElementById("hand").innerHTML = state?.hand?.sort()?.map(card =>
       "<span class=\"card\">" + formatCard(card) + "</span>").join("\n");
     document.getElementById("actions").innerHTML = actions?.map(action =>
-      "<button onclick=\"play('" + action + "')\">" + (action === "PASS" ? "Pass" : formatAction(action)) + "</button>").join("\n");
+      "<button onclick=\"play('" + action + "')\">" + (action === "PASS" ? "<span class='action pass'>Pass</span>" : formatAction(action)) + "</button>").join("\n");
 
     document.getElementById("head-calls").setAttribute('title',
         "Score: (US | THEM)\n"+(state?.score?.us ?? "-")+" | "+(state?.score?.them ?? "-") +
