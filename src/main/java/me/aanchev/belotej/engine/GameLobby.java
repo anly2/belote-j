@@ -45,9 +45,7 @@ public class GameLobby {
         return joinGame(player, gameId, null);
     }
     public String joinGame(String player, String gameId, @Nullable RelPlayer position) {
-        var session = gamesByPlayer.values().stream().filter(g -> g.getValue().getGameId().equals(gameId)).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("No such game: " + gameId));
-        var game = session.getValue();
+        var game = findGame(gameId);
         addToGame(game, player, position == null ? -1 : position.getIndex());
         log.info("Player '{}' joined game: {}", player, game.getGameId());
         if (!game.getPlayerNames().contains(null) && autostartGames.contains(game.getGameId())) {
@@ -118,8 +116,12 @@ public class GameLobby {
 
 
     public String getGameSeed(String gameId) {
+        return findGame(gameId).getSeed();
+    }
+
+    private GameState findGame(String gameId) {
         var session = gamesByPlayer.values().stream().filter(g -> g.getValue().getGameId().equals(gameId)).findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("No such game: " + gameId));
-        return session.getValue().getSeed();
+        return session.getValue();
     }
 }
