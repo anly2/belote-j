@@ -164,8 +164,9 @@
   refreshSeed(gameId);
 
   function play(action) {
-    fetch("/" + player + "/play/" + action + "?waitForMyTurn=true").then(r => r.json())
-      .then(state => refresh(state));
+    fetch("/" + player + "/play/" + action + "?waitForMyTurn=false").then(r => r.json())
+      .then(state => refresh(state))
+      .then(() => setTimeout(() => refresh(), 1000));
   }
 
   const formatCard = card => (card ?? "<span class=\"na\">-</span>")
