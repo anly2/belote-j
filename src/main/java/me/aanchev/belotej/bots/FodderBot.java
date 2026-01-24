@@ -71,11 +71,18 @@ public class FodderBot implements CallAndTrickStatelessBot {
             return validActions.get(random.nextInt(validActions.size()));
         }
 
-        var cards = validActions.stream()
-                .sorted(comparingInt(c -> c.getPower(state.getTrump())))
-                .toList();
-
         var teammateWinning = (state.getTrickCurrentStrongestPlayer() == RelPlayer.n);
-        return teammateWinning ? cards.getLast() : cards.getFirst();
+
+        if (teammateWinning) {
+            var askedSuit = state.getTrickAskingSuit();
+            return validActions.stream()
+                    .filter(c -> askedSuit == c.getSuit())
+                    .max(comparingInt(c -> c.getPower(state.getTrump())))
+                    .orElseGet(() -> validActions.get(random.nextInt(validActions.size())));
+        }
+
+        return validActions.stream()
+                .min(comparingInt(c -> c.getPower(state.getTrump())))
+                .orElseThrow();
     }
 }
