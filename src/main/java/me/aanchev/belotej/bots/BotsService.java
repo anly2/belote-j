@@ -25,6 +25,8 @@ public class BotsService {
         strategies = Map.of(
                 "PassThenRandom", name -> new PassThenRandom(
                         new Random(extractLong(name, "PassThenRandom\\(([^\\)]+)\\)", 1, 0))),
+                "Fodder", name -> new FodderBot(
+                        new Random(extractLong(name, "Fodder\\(([^\\)]+)\\)", 1, 0))),
                 "RemoteCall", name -> remoteCallStrategyFactory.create(
                         extract(name, "RemoteCall\\(([^\\)]+)\\)", 1, null))
         );
