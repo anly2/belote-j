@@ -41,7 +41,7 @@
             text-align: center;
         }
 
-        .card, .bids, #hand > *, #actions > * {
+        .card, .bids, #winning-trump, #hand > *, #actions > * {
             font-size: 24px;
             text-space: 5px;
             font-weight: bold;
@@ -53,6 +53,13 @@
             font-size: 18px;
             text-transform: capitalize;
         }
+
+        .bids.winning-trump {
+            border: 2px solid gold;
+            border-radius: 5px;
+            background-color: #fff9e6;
+        }
+
 
         #hand {
             margin-top: 1em;
@@ -126,11 +133,6 @@
             bottom: 10px;
             right: 10px;
         }
-        .bids.winning-trump {
-            border: 2px solid gold;
-            border-radius: 5px;
-            background-color: #fff9e6;
-        }
     </style>
 </head>
 <body>
@@ -146,7 +148,7 @@
 <div id="trick_and_bids">
     <div id="head-prev-trick" class="prev-trick head" style="grid-area: prev-trick-head;">Previous:</div>
     <div id="head-trick" class="head" style="grid-area: trick-head;">Trick:</div>
-    <div id="head-calls" class="head" style="grid-area: calls-head;">Bids and claims:</div>
+    <div id="head-calls" class="head" style="grid-area: calls-head;">Bids and claims: <span id="winning-trump"></span></div>
 
     <div id="prev-trick-south" class="prev-trick trick south card" style="grid-area: prev-trick-south"></div>
     <div id="prev-trick-west" class="prev-trick trick west card" style="grid-area: prev-trick-west"></div>
@@ -291,6 +293,8 @@
     document.getElementById("bids-west").innerHTML = formatBids(state.calls?.w);
     document.getElementById("bids-north").innerHTML = formatBids(state.calls?.n);
     document.getElementById("bids-east").innerHTML = formatBids(state.calls?.e);
+
+    document.getElementById("winning-trump").innerHTML = formatAction(state.trump) || '';
 
     ["south", "west", "north", "east"].forEach(p => document.getElementById("bids-" + p).classList.remove("winning-trump"));
     if (state.trump) {
