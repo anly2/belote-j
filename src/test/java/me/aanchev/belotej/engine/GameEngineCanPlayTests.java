@@ -42,4 +42,21 @@ class GameEngineCanPlayTests {
         assertThat(sut.canPlay(state, C7, RelPlayer.s)).isTrue();
         assertThat(sut.canPlay(state, SQ, RelPlayer.s)).isTrue();
     }
+
+    @Test
+    public void canPlay_suitNotTrump_raisedToNotTrump_shouldPlayTrump() {
+        var state = new GameLobby(sut).createGame(123, "1");
+
+        state.setTrump(Trump.S);
+        state.setTrick(WNES.wnes(null, D8, DK, null));
+        state.setTrickInitiator(RelPlayer.n);
+        state.setTrickWinner(RelPlayer.e);
+
+        state.getHands().setS(asList(H9, HJ, S8, SQ));
+
+        assertThat(sut.canPlay(state, H9, RelPlayer.s)).isFalse();
+        assertThat(sut.canPlay(state, HJ, RelPlayer.s)).isFalse();
+        assertThat(sut.canPlay(state, S8, RelPlayer.s)).isTrue();
+        assertThat(sut.canPlay(state, SQ, RelPlayer.s)).isTrue();
+    }
 }
