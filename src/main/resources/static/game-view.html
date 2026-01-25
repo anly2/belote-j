@@ -4,26 +4,20 @@
     <meta charset="UTF-8">
     <title>Game View</title>
     <style>
-        body {
-            display: flex;
-            flex-direction: row;
-            align-items: flex-start;
-            gap: 2em;
-        }
-
-        #main-content {
-            flex-grow: 1;
-        }
-
         #help-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-family: monospace;
+        }
+        .help-panel-body {
             display: flex;
             gap: 1em;
             border: 1px solid #ccc;
             padding: 1em;
             background-color: #f9f9f9;
-            font-family: monospace;
+            align-items: stretch;
         }
-
         .help-column {
             display: flex;
             flex-direction: column;
@@ -31,32 +25,6 @@
             gap: 0.2em;
         }
 
-        .help-column .title {
-            font-weight: bold;
-            margin-bottom: 0.5em;
-            font-size: 14px;
-        }
-
-        .help-card {
-            font-size: 20px;
-            height: 1.2em;
-            width: 5em;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-        }
-
-        .help-card.blank {
-            visibility: hidden;
-        }
-
-        .help-column.trump {
-            color: red;
-        }
-
-        .help-column.not-trump {
-            color: black;
-        }
 
         #trick_and_bids {
             display: inline-grid;
@@ -204,47 +172,66 @@
 <div id="actions"></div>
 </div>
 
-<div id="help-panel">
-    <div class="help-column trump">
-        <div class="title">Trump</div>
-        <div class="help-card">J (20)</div>
-        <div class="help-card">9 (14)</div>
-        <div class="help-card">A (11)</div>
-        <div class="help-card">10 (10)</div>
-        <div class="help-card">K (4)</div>
-        <div class="help-card">Q (3)</div>
-        <div class="help-card blank"> </div>
-        <div class="help-card blank"> </div>
-        <div class="help-card">8 (0)</div>
-        <div class="help-card">7 (0)</div>
+<details id="help-panel" open>
+    <summary style="text-align: right;"><b>Help</b></summary>
+    <div class="help-panel-body">
+        <div class="help-column trump">
+            <div class="title"><b>Trump</b></div>
+            <div class="help-card hearts">J (20)</div>
+            <div class="help-card hearts">9 (14)</div>
+            <div class="help-card hearts">A (11)</div>
+            <div class="help-card hearts">10 (10)</div>
+            <div class="help-card hearts">K (4)</div>
+            <div class="help-card hearts">Q (3)</div>
+            <div class="help-card hearts blank">&nbsp;</div>
+            <div class="help-card hearts blank">&nbsp;</div>
+            <div class="help-card hearts">8 (0)</div>
+            <div class="help-card hearts">7 (0)</div>
+        </div>
+        <div class="help-column not-trump">
+            <div class="title"><b>Non-trump</b></div>
+            <div class="help-card blank">&nbsp;</div>
+            <div class="help-card blank">&nbsp;</div>
+            <div class="help-card">A (11)</div>
+            <div class="help-card">10 (10)</div>
+            <div class="help-card">K (4)</div>
+            <div class="help-card">Q (3)</div>
+            <div class="help-card">J (2)</div>
+            <div class="help-card">9 (0)</div>
+            <div class="help-card">8 (0)</div>
+            <div class="help-card">7 (0)</div>
+        </div>
+        <div class="help-column">
+            <div class="title"><b>Runs</b></div>
+            <div class="help-card blank">&nbsp;</div>
+            <div class="help-card blank">&nbsp;</div>
+            <div class="help-card">A</div>
+            <div class="help-card">K</div>
+            <div class="help-card">Q</div>
+            <div class="help-card">J</div>
+            <div class="help-card">10</div>
+            <div class="help-card">9</div>
+            <div class="help-card">8</div>
+            <div class="help-card">7</div>
+        </div>
+
     </div>
-    <div class="help-column not-trump">
-        <div class="title">No Trump</div>
-        <div class="help-card blank"> </div>
-        <div class="help-card blank"> </div>
-        <div class="help-card">A (11)</div>
-        <div class="help-card">10 (10)</div>
-        <div class="help-card">K (4)</div>
-        <div class="help-card">Q (3)</div>
-        <div class="help-card">J (2)</div>
-        <div class="help-card">9 (0)</div>
-        <div class="help-card">8 (0)</div>
-        <div class="help-card">7 (0)</div>
-    </div>
-    <div class="help-column">
-        <div class="title">Tierce</div>
-        <div class="help-card blank"> <!--(4xJ = 200)--></div>
-        <div class="help-card blank"> <!--(4x9 = 150)--></div>
-        <div class="help-card">A <!--(4x* = 100)--></div>
-        <div class="help-card">K <!--(Belote = 20)--></div>
-        <div class="help-card">Q</div>
-        <div class="help-card">J <!--(^5+ = 100)--></div>
-        <div class="help-card">10 <!--(^4 = 50)--></div>
-        <div class="help-card">9 <!--(^3 = 20)--></div>
-        <div class="help-card">8</div>
-        <div class="help-card">7</div>
-    </div>
-</div>
+    <details>
+        <summary><b>Combinations</b></summary>
+        <div>
+            <div>4x <b>J</b> = <strong>200</strong></div>
+            <div>4x <b>9</b> = <strong>150</strong></div>
+            <div>4x <b>*</b> = <strong>100</strong></div>
+            <details>
+                <summary>Belote = <strong>20</strong></summary>
+                &nbsp;&nbsp;&nbsp; Trump <b>Q+K</b> on play
+            </details>
+            <div><b>5+</b> run = <strong>100</strong></div>
+            <div><b>4</b>&nbsp; run = <strong>50</strong></div>
+            <div><b>3</b>&nbsp; run = <strong>20</strong></div>
+        </div>
+    </details>
+</details>
 
 <textarea id="state_json"></textarea>
 
