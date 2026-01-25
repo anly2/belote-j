@@ -403,8 +403,9 @@ class GameEngine {
             }
             if (!Trump.isTrump(askedSuit, trump) && !Trump.isTrump(suit, trump)) {
                 if (!sameTeam(winner, player)) {
-                    if (hand.stream().anyMatch(c -> isTrump(c, trump))) {
-                        return "You have a trump but you are not playing it!";
+                    var powerThreshold = getPower(trick.get(state.getTrickWinner()), trump);
+                    if (hand.stream().anyMatch(c -> isTrump(c, trump) && getPower(c, trump) > powerThreshold)) {
+                        return "You have a stronger trump but you are not playing it!";
                     }
                 }
             }
