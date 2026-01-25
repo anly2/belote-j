@@ -126,6 +126,11 @@
             bottom: 10px;
             right: 10px;
         }
+        .bids.winning-trump {
+            border: 2px solid gold;
+            border-radius: 5px;
+            background-color: #fff9e6;
+        }
     </style>
 </head>
 <body>
@@ -286,6 +291,15 @@
     document.getElementById("bids-west").innerHTML = formatBids(state.calls?.w);
     document.getElementById("bids-north").innerHTML = formatBids(state.calls?.n);
     document.getElementById("bids-east").innerHTML = formatBids(state.calls?.e);
+
+    ["south", "west", "north", "east"].forEach(p => document.getElementById("bids-" + p).classList.remove("winning-trump"));
+    if (state.trump) {
+        const winningTrumpPlayer = Object.entries(state.calls || {}).find(([p, calls]) => calls && calls.includes(state.trump))?.[0];
+        const winningTrumpPlayerFull = {s: "south", w: "west", n: "north", e: "east"}[winningTrumpPlayer];
+        if (winningTrumpPlayerFull) {
+            document.getElementById("bids-" + winningTrumpPlayerFull).classList.add("winning-trump");
+        }
+    }
 
     document.getElementById("claims-south").innerHTML = formatClaims(state.claims?.s);
     document.getElementById("claims-west").innerHTML = formatClaims(state.claims?.w);
