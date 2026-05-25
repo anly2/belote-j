@@ -149,7 +149,7 @@
 <div>Player: <span id="player-name"></span></div>
 <br>
 <div id="trick_and_bids">
-    <div id="head-prev-trick" class="prev-trick head" style="grid-area: prev-trick-head;">Previous:</div>
+    <div id="head-prev-trick" class="prev-trick head" style="grid-area: prev-trick-head;">Previous<span id="previousTrickWasFromPreviousRound" style="display:none;"> Round</span>:</div>
     <div id="head-trick" class="head" style="grid-area: trick-head;">Trick:</div>
     <div id="head-calls" class="head" style="grid-area: calls-head;">Bids and claims: <span id="winning-trump"></span></div>
 
@@ -279,6 +279,7 @@
     document.getElementById("game-id").innerHTML = gameId;
     document.getElementById("game-score").innerHTML = (state?.gameScore?.us ?? "-") + " (us) : " + (state?.gameScore?.them ?? "-") + " (them)";
 
+    document.getElementById("previousTrickWasFromPreviousRound").style.display = state.previousTrickWasFromPreviousRound ? "block" : "none";
     document.getElementById("prev-trick-south").innerHTML = formatCard(state.previousTrick?.s);
     document.getElementById("prev-trick-west").innerHTML = formatCard(state.previousTrick?.w);
     document.getElementById("prev-trick-north").innerHTML = formatCard(state.previousTrick?.n);
@@ -335,13 +336,14 @@
 
   function refresh(state) {
       Promise.all([
-        state ? Promise.resolve(state) : fetch("/" + player + "/state").then(async r => {
-           const s = await r.json();
-           if (!s.previousTrick || !Object.keys(s.previousTrick).length) {
-               s.previousTrick = await fetch("/" + player + "/previous-round-last-trick").then(r2 => r2.json());
-           }
-           return s;
-        }),
+        (state ? Promise.resolve(state) : fetch("/" + player + "/state").then(r => r.json()))
+          .then(async s => {
+             if (!s.previousTrick || !Object.keys(s.previousTrick).length) {
+                 s.previousTrick = await fetch("/" + player + "/previous-round-last-trick").then(r2 => r2.json());
+                 s.previousTrickWasFromPreviousRound = true;
+             }
+             return s;
+          }),
         fetch("/" + player + "/play").then(r => r.json())
       ]).then(e => updateBoard(e[0], e[1]))
   }
