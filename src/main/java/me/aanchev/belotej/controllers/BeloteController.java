@@ -13,8 +13,10 @@ import jakarta.inject.Named;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.aanchev.belotej.bots.BotsService;
+import me.aanchev.belotej.domain.Card;
 import me.aanchev.belotej.domain.GameAction;
 import me.aanchev.belotej.domain.PlayerState;
+import me.aanchev.belotej.domain.WNES;
 import me.aanchev.belotej.engine.GameLobby;
 import me.aanchev.belotej.engine.GameService;
 
@@ -73,6 +75,13 @@ public class BeloteController {
             @QueryValue(defaultValue = "false") boolean waitForMyTurn
     ) {
         return CompletableFuture.supplyAsync(() -> gameService.getState(player, waitForMyTurn), executorService);
+    }
+
+    @Get("/{player}/previous-round-last-trick")
+    public WNES<Card> getPreviousRoundLastTrick(
+            @PathVariable String player
+    ) {
+        return gameService.getPreviousRoundLastTrick(player);
     }
 
     @ExecuteOn(TaskExecutors.BLOCKING)

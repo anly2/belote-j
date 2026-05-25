@@ -18,6 +18,7 @@ import static java.util.Comparator.comparingInt;
 import static me.aanchev.belotej.domain.Card.*;
 import static me.aanchev.belotej.domain.PassCall.PASS;
 import static me.aanchev.belotej.domain.Team.sameTeam;
+import static me.aanchev.belotej.domain.WNES.wnes;
 import static me.aanchev.belotej.engine.GameState.clear;
 import static me.aanchev.belotej.engine.PrintUtils.printBoard;
 import static me.aanchev.utils.DataUtils.pair;
@@ -56,6 +57,8 @@ class GameEngine {
     }
 
     public void nextRound(GameState state) {
+        state.setPreviousRoundLastTrick(wnes(state.getTrick()));
+
         var winner = nextTrick(state);
         state.getScore().add(10, winner);
 

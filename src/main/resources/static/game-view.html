@@ -139,6 +139,7 @@
 <div id="main-content">
 <div>Game ID: <span id="game-id"></span>
     <a class="new-game" href="/new"><button>New</button></a>
+    <a class="new-game" onclick="window.location.href = '/new?seed=' + prompt('Game seed:', Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)) + '&south=aa&west=bot:Fodder(456):W&north=bot:Fodder(123):N&east=bot:Fodder(789):E'"><button>1</button></a>
     <a class="new-game" onclick="window.location.href = '/new?north=' + prompt('North declaration:', 'bot:RemoteCall(http://192.168.1.202:8000/play)')"><button>New *NORTH</button></a>
     <a class="new-game" onclick="window.location.href = '/new?seed=' + prompt('Game seed:', Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)) + '&gameName=' + prompt('Game name:', '1') + '&south=' + prompt('South declaration:', 'aa') + '&west=' + prompt('West declaration:', 'yy') + '&north=' + prompt('North declaration:', 'bot:PassThenRandom(123):N') + '&east=' + prompt('East declaration:', 'bot:RemoteCall(http://192.168.1.202:8000/play)')"><button>**</button></a>
     <a class="new-game" onclick="window.location.href = '/new?seed=' + prompt('Game seed:', Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)) + '&gameName=1&south=aa&west=yy&north=bot:Fodder(123):N&east=bot:Fodder(123):E'"><button>aa-yy</button></a>
@@ -334,7 +335,13 @@
 
   function refresh(state) {
       Promise.all([
-        state ? Promise.resolve(state) : fetch("/" + player + "/state").then(r => r.json()),
+        state ? Promise.resolve(state) : fetch("/" + player + "/state").then(async r => {
+           const s = await r.json();
+           if (!s.previousTrick || !Object.keys(s.previousTrick).length) {
+               s.previousTrick = await fetch("/" + player + "/previous-round-last-trick").then(r2 => r2.json());
+           }
+           return s;
+        }),
         fetch("/" + player + "/play").then(r => r.json())
       ]).then(e => updateBoard(e[0], e[1]))
   }

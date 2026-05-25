@@ -124,6 +124,23 @@ public class GameService {
     }
 
 
+    public WNES<Card> getPreviousRoundLastTrick(String player) {
+        var session = lobby.getGameSession(player);
+        if (session == null) return null;
+
+        return getPreviousRoundLastTrick(session.getValue(), session.getKey());
+    }
+
+    public WNES<Card> getPreviousRoundLastTrick(GameState gameState, RelPlayer position) {
+        var lastTrick = gameState.getPreviousRoundLastTrick();
+        if (lastTrick == null) return null;
+
+        int rotation = position.getIndex();
+        return rotate(lastTrick, rotation);
+    }
+
+
+
     public static RelPlayer rotate(RelPlayer source, int observerIndex) {
         if (source == null) return null;
         return RelPlayer.get(source.getIndex() - observerIndex + 4);

@@ -51,6 +51,8 @@ class GameState {
     private Scores score = new Scores();
     private Scores gameScore = new Scores();
 
+    private WNES<Card> previousRoundLastTrick = null;
+
 
 
     public void resetGame() {
@@ -67,6 +69,7 @@ class GameState {
         trump = null;
         challengers = null;
 
+        previousRoundLastTrick = wnes(trick);
         trick.reset();
         clear(winPiles);
 
