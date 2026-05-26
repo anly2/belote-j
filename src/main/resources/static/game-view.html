@@ -175,6 +175,14 @@
 
           border-radius: 0.25em;
         }
+
+       .if-staggerMoves {
+         display: none;
+       }
+
+       *:has(#shouldStaggerMoves:checked) .if-staggerMoves {
+         display: inline;
+       }
     </style>
 </head>
 <body>
@@ -189,6 +197,10 @@
 </div>
 <div>Game Score: <span id="game-score"></span></div>
 <div>Player: <span id="player-name"></span></div>
+<div>
+    <label>Stagger moves <input type="checkbox" id="shouldStaggerMoves" checked/></label>
+    <label class="if-staggerMoves">Time between moves <input type="text" id="intervalStaggerMoves" value="manual"/>ms</label>
+</div>
 
 <br>
 <div id="trick_and_bids">
@@ -411,7 +423,7 @@
       .replace(/^A/g, "NO_TRUMPS")
       .replace(/^J/g, "ALL_TRUMPS")
     const fAction = action => !action ? null : action === "PASS" ? "PASS" : action.length == 1 ? fSuit(action) : fCard(action);
-    const fBids = bids => bids.map(b => b == "C" ? "CLUBS" : b == "D" ? "DIAMONDS" : b == "H" ? "HEARTS" : b == "S" ? "SPADES" : b == "A" ? "NO_TRUMPS" : b == "J" ? "ALL_TRUMPS" : b)
+    const fBids = bids => bids?.map(b => b == "C" ? "CLUBS" : b == "D" ? "DIAMONDS" : b == "H" ? "HEARTS" : b == "S" ? "SPADES" : b == "A" ? "NO_TRUMPS" : b == "J" ? "ALL_TRUMPS" : b)
     const fClaims = claims => claims;
     return JSON.stringify(
         {
@@ -463,6 +475,8 @@
 
 function staggerMoves(state, actions) {
   if (staggerMoves.recurring || !state) return false;
+
+  if (!document.getElementById("shouldStaggerMoves").value) return false;
 
   const prevState = staggerMoves.prevState;
 
@@ -570,8 +584,8 @@ function staggerMoves(state, actions) {
     if (el) el.classList.add("highlighted");
   }
 
-  btn.style.display = "inline-block";
-  btn.onclick = () => {
+
+  const triggerNext = () => {
     showFrame(frames[frameIndex]);
     frameIndex++;
 
@@ -585,8 +599,26 @@ function staggerMoves(state, actions) {
 
       // Commit only the real server state after the staged reveal completes.
       staggerMoves.prevState = JSON.parse(JSON.stringify(state));
+      return;
     }
+
+    maybeTriggerNextOnInterval();
   };
+  function maybeTriggerNextOnInterval() {
+    let interval = document.getElementById("intervalStaggerMoves").value;
+    try {
+        interval = parseInt(interval);
+    } catch (err) {
+        interval = -1;
+    }
+    if (interval > 0) {
+        setTimeout(triggerNext, interval);
+    }
+  }
+
+  btn.style.display = "block";
+  btn.onclick = triggerNext;
+  maybeTriggerNextOnInterval();
 
   return true;
 }
