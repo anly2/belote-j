@@ -143,6 +143,38 @@
             bottom: 10px;
             right: 10px;
         }
+
+
+        @keyframes stagger-bounce-in {
+          0% {
+            transform: scale(0.65);
+            opacity: 0;
+          }
+
+          55% {
+            transform: scale(1.18);
+            opacity: 1;
+          }
+
+          75% {
+            transform: scale(0.94);
+          }
+
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+
+        .highlighted {
+          display: inline-block;
+          animation: stagger-bounce-in 280ms ease-out both;
+
+          background:
+            radial-gradient(circle, rgba(255, 200, 80, 0.35), transparent 70%);
+
+          border-radius: 0.25em;
+        }
     </style>
 </head>
 <body>
@@ -157,6 +189,7 @@
 </div>
 <div>Game Score: <span id="game-score"></span></div>
 <div>Player: <span id="player-name"></span></div>
+
 <br>
 <div id="trick_and_bids">
     <div id="head-prev-trick" class="prev-trick head" style="grid-area: prev-trick-head;">Previous<span id="previousTrickWasFromPreviousRound" style="display:none;"> Round Last Trick</span>:</div>
@@ -168,7 +201,7 @@
     <div id="prev-trick-north" class="prev-trick trick north card" style="grid-area: prev-trick-north"></div>
     <div id="prev-trick-east" class="prev-trick trick east card" style="grid-area: prev-trick-east"></div>
 
-    <div class="prev-trick" style="grid-area: t; height: 0; width: 0; margin: 0px 1em;  border-style: solid; border-color: transparent transparent transparent black; border-width: 3em 0 3em 1em"></div>
+    <div id="trick-threshold" class="prev-trick" style="grid-area: t; height: 0; width: 0; margin: 0px 1em;  border-style: solid; border-color: transparent transparent transparent black; border-width: 3em 0 3em 1em"></div>
 
     <div id="trick-south" class="trick south card" style="grid-area: trick-south"></div>
     <div id="trick-west" class="trick west card" style="grid-area: trick-west"></div>
@@ -188,6 +221,8 @@
     <div id="claims-north" class="north claims" style="grid-area: claims-north"></div>
     <div id="claims-east" class="east claims" style="grid-area: claims-east"></div>
 </div>
+
+<button id="nextStaggeredMove" style="display:none;">Next</button>
 
 <div id="hand"></div>
 
@@ -285,6 +320,8 @@
   const formatClaims = claims => claims && claims.length ? "[" + claims.map(c => "<span class=\"claim\">" + c + "</span>").join(" ") + "]" : "";
 
   function updateBoard(state, actions) {
+    if (staggerMoves(state, actions)) return;
+
     document.getElementById("player-name").innerHTML = player;
     document.getElementById("game-id").innerHTML = gameId;
     document.getElementById("game-score").innerHTML = (state?.gameScore?.us ?? "-") + " (us) : " + (state?.gameScore?.them ?? "-") + " (them)";
@@ -405,6 +442,154 @@
         }
         , null, 2)
   }
+
+
+  function wneList(wne) {
+    return ["w", "n", "e"].map(p => wne?.[p]);
+  }
+
+  const wneToDom = {
+    previousTrick: {
+      w: "prev-trick-west",
+      n: "prev-trick-north",
+      e: "prev-trick-east"
+    },
+    trick: {
+      w: "trick-west",
+      n: "trick-north",
+      e: "trick-east"
+    }
+  };
+
+function staggerMoves(state, actions) {
+  if (staggerMoves.recurring || !state) return false;
+
+  const prevState = staggerMoves.prevState;
+
+  // First render has no previous state to compare against.
+  if (!prevState) {
+    staggerMoves.prevState = JSON.parse(JSON.stringify(state));
+    return false;
+  }
+
+  const players = ["w", "n", "e"];
+  const clone = obj => JSON.parse(JSON.stringify(obj ?? {}));
+  const card = (obj, p) => obj?.[p] ?? null;
+  const sameCard = (a, b) => (a ?? null) === (b ?? null);
+
+  const beforeCount =
+    wneList(prevState.previousTrick).filter(Boolean).length +
+    wneList(prevState.trick).filter(Boolean).length;
+
+  const afterCount =
+    wneList(state.previousTrick).filter(Boolean).length +
+    wneList(state.trick).filter(Boolean).length;
+
+  // Only stagger forward progress. Normal rendering handles equal/rewind states.
+  if (beforeCount >= afterCount) {
+    staggerMoves.prevState = JSON.parse(JSON.stringify(state));
+    return false;
+  }
+
+  const targetPrevTrick = clone(state.previousTrick);
+  const targetTrick = clone(state.trick);
+
+  let currPrevTrick = clone(prevState.previousTrick);
+  let currTrick = clone(prevState.trick);
+
+  const frames = [];
+
+  function makeFrame(highlightId) {
+    const frame = clone(state);
+
+    frame.previousTrick = clone(currPrevTrick);
+    frame.trick = clone(currTrick);
+
+    frames.push({
+      state: frame,
+      highlightId
+    });
+  }
+
+  function setSlot(prop, pos, value) {
+    const obj = prop === "previousTrick" ? currPrevTrick : currTrick;
+
+    if (value) obj[pos] = value;
+    else delete obj[pos];
+
+    makeFrame(wneToDom[prop][pos]);
+  }
+
+  const previousTrickChanged = players.some(
+    p => !sameCard(card(prevState.previousTrick, p), card(targetPrevTrick, p))
+  );
+
+  const hasTargetPreviousTrick = players.some(p => card(targetPrevTrick, p));
+
+  if (previousTrickChanged && hasTargetPreviousTrick) {
+    for (const p of players) {
+      const next = card(targetPrevTrick, p);
+      if (next && !sameCard(card(currTrick, p), next)) {
+        setSlot("trick", p, next);
+      }
+    }
+
+    currPrevTrick = clone(targetPrevTrick);
+
+    // Clear the whole current trick, including South.
+    for (const p of ["s", ...players]) delete currTrick[p];
+
+    makeFrame("trick-threshold");
+  }
+
+  for (const p of players) {
+    const next = card(targetTrick, p);
+    if (!sameCard(card(currTrick, p), next)) {
+      setSlot("trick", p, next);
+    }
+  }
+
+  if (!frames.length) {
+    staggerMoves.prevState = JSON.parse(JSON.stringify(state));
+    return false;
+  }
+
+  const btn = document.getElementById("nextStaggeredMove");
+  let frameIndex = 0;
+
+  function showFrame(frame) {
+    for (const e of document.querySelectorAll(".highlighted")) {
+      e.classList.remove("highlighted");
+    }
+
+    staggerMoves.recurring = true;
+    updateBoard(frame.state, frameIndex === frames.length - 1 ? actions : []);
+    delete staggerMoves.recurring;
+
+    const el = document.getElementById(frame.highlightId);
+    if (el) el.classList.add("highlighted");
+  }
+
+  btn.style.display = "inline-block";
+  btn.onclick = () => {
+    showFrame(frames[frameIndex]);
+    frameIndex++;
+
+    if (frameIndex >= frames.length) {
+      btn.style.display = "none";
+      btn.onclick = null;
+
+      for (const e of document.querySelectorAll(".highlighted")) {
+        e.classList.remove("highlighted");
+      }
+
+      // Commit only the real server state after the staged reveal completes.
+      staggerMoves.prevState = JSON.parse(JSON.stringify(state));
+    }
+  };
+
+  return true;
+}
 </script>
 
 </body>
