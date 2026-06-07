@@ -327,7 +327,9 @@
     document.getElementById("game-id").innerHTML = gameId;
     document.getElementById("game-score").innerHTML = (state?.gameScore?.us ?? "-") + " (us) : " + (state?.gameScore?.them ?? "-") + " (them)";
 
-    document.getElementById("previousTrickWasFromPreviousRound").style.display = state.previousTrickWasFromPreviousRound ? "inline" : "none";
+    document.getElementById("previousTrickWasFromPreviousRound").style.display = state?.previousTrickWasFromPreviousRound ? "inline" : "none";
+    document.getElementById("previousTrickWasFromPreviousRound").setAttribute('title', state?.previousRoundPoints ? "Points:\nUs:      "+state?.previousRoundPoints.us+"\nThem: " + state?.previousRoundPoints.them : "");
+
     document.getElementById("prev-trick-south").innerHTML = formatCard(state.previousTrick?.s);
     document.getElementById("prev-trick-west").innerHTML = formatCard(state.previousTrick?.w);
     document.getElementById("prev-trick-north").innerHTML = formatCard(state.previousTrick?.n);
@@ -384,7 +386,9 @@
         (state ? Promise.resolve(state) : fetch("/" + player + "/state").then(r => r.json()))
           .then(async s => {
              if (!s.trump && (s.gameScore?.us > 0 || s.gameScore?.them > 0) && (!s.previousTrick || !Object.keys(s.previousTrick).length)) {
-                 s.previousTrick = await fetch("/" + player + "/previous-round-last-trick").then(r2 => r2.json());
+                 const info = await fetch("/" + player + "/previous-round").then(r2 => r2.json());
+                 s.previousTrick = info?.lastTrick;
+                 s.previousRoundPoints = info?.points;
                  s.previousTrickWasFromPreviousRound = true;
              }
              return s;

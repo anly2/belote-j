@@ -1,5 +1,6 @@
 package me.aanchev.belotej.engine;
 
+import io.micronaut.serde.annotation.Serdeable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.aanchev.belotej.domain.*;
@@ -156,20 +157,26 @@ public class GameService {
     }
 
 
-    public WNES<Card> getPreviousRoundLastTrick(String player) {
+    public PreviousRoundInfo getPreviousRoundInfo(String player) {
         var session = lobby.getGameSession(player);
         if (session == null) return null;
 
-        return getPreviousRoundLastTrick(session.getValue(), session.getKey());
+        return getPreviousRoundInfo(session.getValue(), session.getKey());
     }
 
-    public WNES<Card> getPreviousRoundLastTrick(GameState gameState, RelPlayer position) {
+    public PreviousRoundInfo getPreviousRoundInfo(GameState gameState, RelPlayer position) {
         var lastTrick = gameState.getPreviousRoundLastTrick();
         if (lastTrick == null) return null;
 
         int rotation = position.getIndex();
-        return rotate(lastTrick, rotation);
+        return new PreviousRoundInfo(
+                rotate(lastTrick, rotation),
+                rotate(gameState.getPreviousRoundPoints(), rotation)
+        );
     }
+
+    @Serdeable
+    public record PreviousRoundInfo(WNES<Card> lastTrick, Scores points) {}
 
 
 

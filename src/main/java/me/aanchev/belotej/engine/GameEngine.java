@@ -62,12 +62,16 @@ class GameEngine {
         var winner = nextTrick(state);
         state.getScore().add(10, winner);
 
-        var matchPointsUsBefore = state.getGameScore().getUs();
-        var matchPointsThemBefore = state.getGameScore().getThem();
+
+        state.setPreviousRoundPoints(Scores.scores(state.getScore()));
+
         if (printOnTrickEnd) {
             System.out.println("Round ended!" +
                     "\nScore after last trick: " + state.getScore().getUs() + " | " + state.getScore().getThem());
         }
+
+        var matchPointsUsBefore = state.getGameScore().getUs();
+        var matchPointsThemBefore = state.getGameScore().getThem();
 
         state.getPreviousTrick().reset();
         state.setTrickWinner(null);

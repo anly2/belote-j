@@ -52,6 +52,7 @@ class GameState {
     private Scores gameScore = new Scores();
 
     private WNES<Card> previousRoundLastTrick = null;
+    private Scores previousRoundPoints = null;
 
 
 
@@ -59,6 +60,8 @@ class GameState {
         deck.clear();
         deck.addAll(initialDeck);
         clearRound();
+        previousRoundLastTrick = null;
+        previousRoundPoints = null;
         gameScore.reset();
     }
 
@@ -70,6 +73,8 @@ class GameState {
         challengers = null;
 
         previousRoundLastTrick = wnes(trick);
+        previousRoundPoints = Scores.scores(score);
+
         trick.reset();
         clear(winPiles);
 

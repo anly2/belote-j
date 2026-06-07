@@ -51,6 +51,9 @@ public class Scores {
     public static Scores scores() {
         return new Scores();
     }
+    public static Scores scores(Scores source) {
+        return new Scores(source.getUs(), source.getThem());
+    }
     public static Scores scores(int us, int them) {
         return new Scores(us, them);
     }
