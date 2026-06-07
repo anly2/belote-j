@@ -2,10 +2,12 @@ package me.aanchev.belotej.controllers;
 
 
 import io.micronaut.http.HttpResponse;
+import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.http.annotation.QueryValue;
+import io.micronaut.http.sse.Event;
 import io.micronaut.scheduling.TaskExecutors;
 import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,6 +21,7 @@ import me.aanchev.belotej.domain.PlayerState;
 import me.aanchev.belotej.domain.WNES;
 import me.aanchev.belotej.engine.GameLobby;
 import me.aanchev.belotej.engine.GameService;
+import org.reactivestreams.Publisher;
 
 import java.net.URI;
 import java.util.List;
@@ -133,5 +136,10 @@ public class BeloteController {
         if (player != null && player.startsWith("bot:")) {
             bots.engage(player, gameId);
         }
+    }
+
+    @Get(value = "/{player}/state/stream", produces = MediaType.TEXT_EVENT_STREAM)
+    public Publisher<Event<PlayerState>> stateStream(@PathVariable String player) {
+        return gameService.streamState(player).map(Event::of);
     }
 }

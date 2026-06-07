@@ -192,7 +192,7 @@
 <div id="main-content">
 <div>Game ID: <span id="game-id"></span>
     <a class="new-game" href="/new"><button>New</button></a>
-    <a class="new-game" onclick="window.location.href = '/new?seed=' + prompt('Game seed:', Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)) + '&south=aa&west=bot:Fodder(456):W&north=bot:Fodder(123):N&east=bot:Fodder(789):E'"><button>1</button></a>
+    <a class="new-game" onclick="window.location.href = '/new?seed=' + prompt('Game seed:', Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)) + '&gameName=1&south=aa&west=bot:Fodder(456):W&north=bot:Fodder(123):N&east=bot:Fodder(789):E'"><button>1</button></a>
     <a class="new-game" onclick="window.location.href = '/new?north=' + prompt('North declaration:', 'bot:RemoteCall(http://192.168.1.202:8000/play)')"><button>New *NORTH</button></a>
     <a class="new-game" onclick="window.location.href = '/new?seed=' + prompt('Game seed:', Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)) + '&gameName=' + prompt('Game name:', '1') + '&south=' + prompt('South declaration:', 'aa') + '&west=' + prompt('West declaration:', 'yy') + '&north=' + prompt('North declaration:', 'bot:PassThenRandom(123):N') + '&east=' + prompt('East declaration:', 'bot:RemoteCall(http://192.168.1.202:8000/play)')"><button>**</button></a>
     <a class="new-game" onclick="window.location.href = '/new?seed=' + prompt('Game seed:', Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)) + '&gameName=1&south=aa&west=yy&north=bot:Fodder(123):N&east=bot:Fodder(123):E'"><button>aa-yy</button></a>
@@ -321,8 +321,7 @@
 
   function play(action) {
     fetch("/" + player + "/play/" + action + "?waitForMyTurn=false").then(r => r.json())
-      .then(state => refresh(state))
-      .then(() => setTimeout(() => refresh(), 1000));
+      .then(state => refresh(state));
   }
 
   const formatCard = card => (card ?? "<span class=\"na\">-</span>")
@@ -391,10 +390,6 @@
 
 
     document.getElementById("state_json").value = toStateJson(state, actions);
-
-    if (state.playerInTurn !== 's') {
-        fetch("/" + player + "/state?waitForMyTurn=true").then(r => r.json()).then(s => refresh(s));
-    }
   }
 
   function refresh(state) {
@@ -412,6 +407,10 @@
   }
 
   refresh();
+
+  const stateEvents = new EventSource("/" + encodeURIComponent(player) + "/state/stream");
+  stateEvents.onmessage = event => refresh(JSON.parse(event.data));
+  stateEvents.onerror = err => console.warn("State stream error", err.message, stateEvents.readyState, err);
 
   function toStateJson(state, actions) {
     const fCard = card => !card ? null : card

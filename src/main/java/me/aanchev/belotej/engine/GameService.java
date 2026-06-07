@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.aanchev.belotej.domain.*;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
+import reactor.util.concurrent.Queues;
 
 import java.util.List;
 import java.util.Map;
@@ -21,6 +24,32 @@ import static me.aanchev.utils.LatchUtils.await;
 public class GameService {
     private final GameLobby lobby;
     private final GameEngine engine;
+
+
+
+    private final Map<String, Sinks.Many<GameState>> streamsByGame =
+            new ConcurrentHashMap<>();
+
+
+    public Flux<PlayerState> streamState(String player) {
+        var session = lobby.getGameSession(player);
+        if (session == null) {
+            throw new NoSuchElementException("Player '" + player + "' is not part of a game!");
+        }
+
+        GameState game = session.getValue();
+
+        var gameStream = streamsByGame
+                .computeIfAbsent(game.getGameId(), id -> Sinks.many().multicast().onBackpressureBuffer(Queues.SMALL_BUFFER_SIZE, false))
+                .asFlux()
+                .startWith(game);
+
+        return gameStream.map(gameState -> getPlayerState(gameState, session.getKey()));
+    }
+
+
+
+    // Deprecated //
 
     private Map<String, CountDownLatch> waiters = new ConcurrentHashMap<>(4);
 
@@ -105,6 +134,9 @@ public class GameService {
         var latch = wait ? new CountDownLatch(1) : null;
         synchronized (game) {
             engine.play(game, session.getKey(), action);
+
+            ofNullable(streamsByGame.get(game.getGameId())).ifPresent(stateStream ->
+                    stateStream.tryEmitNext(game));
 
             String nextPlayer = getNextPlayerName(game);
             var nextPlayerLatch = nextPlayer != null ? waiters.get(nextPlayer) : null;

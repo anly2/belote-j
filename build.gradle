@@ -20,6 +20,7 @@ dependencies {
     annotationProcessor("io.micronaut.spring:micronaut-spring-annotation")
     annotationProcessor("io.micronaut.spring:micronaut-spring-boot-annotation")
     annotationProcessor("io.micronaut.spring:micronaut-spring-web-annotation")
+    implementation("io.micronaut.reactor:micronaut-reactor")
     implementation("io.micronaut:micronaut-http-server")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
     implementation("org.springframework.boot:spring-boot-starter")
