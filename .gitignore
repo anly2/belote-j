@@ -15,3 +15,5 @@ out/
 .factorypath
 
 **/*.private.env.json
+
+data/

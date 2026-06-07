@@ -17,7 +17,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static me.aanchev.belotej.domain.RelPlayer.*;
 import static me.aanchev.belotej.domain.Team.THEM;
 import static me.aanchev.belotej.domain.Team.US;
-import static me.aanchev.belotej.engine.GameService.rotate;
+import static me.aanchev.belotej.engine.RelStateUtils.rotate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
