@@ -17,8 +17,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.*;
 
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
+import static java.time.temporal.ChronoField.*;
 import static me.aanchev.belotej.engine.RelStateUtils.getPlayerState;
 import static me.aanchev.belotej.engine.RelStateUtils.rotate;
 
@@ -34,6 +39,16 @@ public class DataGatheringService {
     private final GameEngine engine;
 
     private ObjectMapper objectMapper = new ObjectMapper();
+    private DateTimeFormatter nowFormatter = new DateTimeFormatterBuilder()
+            .append(ISO_LOCAL_DATE)
+            .appendLiteral(' ')
+            .appendValue(HOUR_OF_DAY, 2)
+            .appendLiteral(':')
+            .appendValue(MINUTE_OF_HOUR, 2)
+            .optionalStart()
+            .appendLiteral(':')
+            .appendValue(SECOND_OF_MINUTE, 2)
+            .toFormatter();
     private Map<GameState, WNES<List<GameAction>>> histories = new WeakHashMap<>();
 
 
@@ -56,6 +71,8 @@ public class DataGatheringService {
     }
 
     protected Object captureEvent(GameState gameState, RelPlayer player, GameAction action) {
+        var now = nowFormatter.format(LocalDateTime.now());
+
         var playerState = getPlayerState(gameState, player);
         playerState.setPreviousTrick(null);
         playerState.setScore(null);
@@ -66,6 +83,7 @@ public class DataGatheringService {
         var playable = engine.getValidActions(gameState, player);
 
         return new CapturedEvent(
+                now,
                 playerState,
                 history,
                 playable,
@@ -75,6 +93,7 @@ public class DataGatheringService {
 
     @Serdeable
     private record CapturedEvent(
+        String when,
         PlayerState playerState,
         WNES<List<GameAction>> history,
         List<GameAction> playable,
