@@ -409,9 +409,26 @@
       nextRefreshAt = runAt + CADENCE;
 
       const nextState = JSON.parse(event.data);
-
-      setTimeout(() => refresh(nextState), delay);
+      setTimeout(() => {
+        refresh(nextState);
+        setTimeout(highlightMove(nextState));
+      }, delay);
     };
+  }
+
+  {
+    const highlightTargets = {
+      bidding: { s: "bids-south", w: "bids-west", n: "bids-north", e: "bids-east" },
+      tricking: { s: "trick-south", w: "trick-west", n: "trick-north", e: "trick-east" },
+    }
+    const highlightClass = "highlighted";
+    function highlightMove(state) {
+      if (!state) return;
+      for (const e of document.querySelectorAll("." + highlightClass)) e.classList.remove(highlightClass);
+      const phase = state.trump ? "tricking" : "bidding";
+      const highlightTargetId = highlightTargets[phase][state.playerInTurn];
+      if (highlightTargetId) document.getElementById(highlightTargetId)?.classList.add(highlightClass);
+    }
   }
 
 
@@ -460,24 +477,6 @@
         }
         , null, 2)
   }
-
-
-  function wneList(wne) {
-    return ["w", "n", "e"].map(p => wne?.[p]);
-  }
-
-  const wneToDom = {
-    previousTrick: {
-      w: "prev-trick-west",
-      n: "prev-trick-north",
-      e: "prev-trick-east"
-    },
-    trick: {
-      w: "trick-west",
-      n: "trick-north",
-      e: "trick-east"
-    }
-  };
 </script>
 
 </body>
