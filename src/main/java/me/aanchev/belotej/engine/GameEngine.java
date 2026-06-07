@@ -62,9 +62,6 @@ class GameEngine {
         var winner = nextTrick(state);
         state.getScore().add(10, winner);
 
-
-        state.setPreviousRoundPoints(Scores.scores(state.getScore()));
-
         if (printOnTrickEnd) {
             System.out.println("Round ended!" +
                     "\nScore after last trick: " + state.getScore().getUs() + " | " + state.getScore().getThem());
@@ -78,7 +75,13 @@ class GameEngine {
         state.setTrickInitiator(null);
         state.setDealer(state.getDealer().next()); // shift the dealer to the next
         state.setNext(state.getDealer().next());   // shift the next to the next of the dealer (yet again)
+
         updateGameScore(state);
+        state.setPreviousRoundPoints(Scores.scores(state.getScore()));
+
+        state.getScore().reset();
+        clear(state.getCombinations());
+
 
         if (printOnTrickEnd) {
             System.out.println("Match points: " +
@@ -110,6 +113,9 @@ class GameEngine {
 
         // Count declarations
         Scores declarationMatchPoints = computeDeclarationMatchPoints(state);
+        score.addToUs(declarationMatchPoints.getUs() * 10);
+        score.addToThem(declarationMatchPoints.getThem() * 10);
+
         pointsUs += declarationMatchPoints.getUs();
         pointsThem += declarationMatchPoints.getThem();
 
@@ -128,8 +134,6 @@ class GameEngine {
             }
         }
         state.getGameScore().add(pointsUs, pointsThem);
-        state.getScore().reset();
-        clear(state.getCombinations());
     }
 
     public int roundScoreToGameScore(int points, Trump trump, int otherPoints) {

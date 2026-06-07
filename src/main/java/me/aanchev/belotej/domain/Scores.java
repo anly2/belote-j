@@ -40,6 +40,10 @@ public class Scores {
         this.them += them;
         return this;
     }
+    public void add(Scores other) {
+        this.us += other.us;
+        this.them += other.them;
+    }
 
 
     public void reset() {
@@ -57,4 +61,5 @@ public class Scores {
     public static Scores scores(int us, int them) {
         return new Scores(us, them);
     }
+
 }
