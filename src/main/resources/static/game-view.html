@@ -145,7 +145,7 @@
         }
 
 
-        @keyframes stagger-bounce-in {
+        @keyframes bounce-in {
           0% {
             transform: scale(0.65);
             opacity: 0;
@@ -168,7 +168,7 @@
 
         .highlighted {
           display: inline-block;
-          animation: stagger-bounce-in 280ms ease-out both;
+          animation: bounce-in 280ms ease-out both;
 
           background:
             radial-gradient(circle, rgba(255, 200, 80, 0.35), transparent 70%);
@@ -176,15 +176,8 @@
           border-radius: 0.25em;
         }
 
-       .if-staggerMoves {
-         display: none;
-       }
        #trick_and_bids:not(.bidding) #previousTrickWasFromPreviousRound {
          display: none;
-       }
-
-       *:has(#shouldStaggerMoves:checked) .if-staggerMoves {
-         display: inline;
        }
     </style>
 </head>
@@ -200,10 +193,6 @@
 </div>
 <div>Game Score: <span id="game-score"></span></div>
 <div>Player: <span id="player-name"></span></div>
-<div>
-    <label>Stagger moves <input type="checkbox" id="shouldStaggerMoves" checked/></label>
-    <label class="if-staggerMoves">Time between moves <input type="text" id="intervalStaggerMoves" value="1000"/>ms</label>
-</div>
 
 <br>
 <div id="trick_and_bids">
@@ -236,8 +225,6 @@
     <div id="claims-north" class="north claims" style="grid-area: claims-north"></div>
     <div id="claims-east" class="east claims" style="grid-area: claims-east"></div>
 </div>
-
-<button id="nextStaggeredMove" style="display:none;">Next</button>
 
 <div id="hand"></div>
 
@@ -314,7 +301,9 @@
 
   function refreshSeed(gameId) {
     fetch("/game/" + gameId + "/seed").then(r => r.text()).then(seed => {
-        document.getElementById("game-id").setAttribute('title', seed);
+        const el = document.getElementById("game-id");
+        el.setAttribute('title', seed);
+        el.onclick = () => prompt("Game seed:", seed);
     });
   }
   refreshSeed(gameId);
@@ -334,8 +323,6 @@
   const formatClaims = claims => claims && claims.length ? "[" + claims.map(c => "<span class=\"claim\">" + c + "</span>").join(" ") + "]" : "";
 
   function updateBoard(state, actions) {
-    if (staggerMoves(state, actions)) return;
-
     document.getElementById("player-name").innerHTML = player;
     document.getElementById("game-id").innerHTML = gameId;
     document.getElementById("game-score").innerHTML = (state?.gameScore?.us ?? "-") + " (us) : " + (state?.gameScore?.them ?? "-") + " (them)";
@@ -409,8 +396,24 @@
   refresh();
 
   const stateEvents = new EventSource("/" + encodeURIComponent(player) + "/state/stream");
-  stateEvents.onmessage = event => refresh(JSON.parse(event.data));
-  stateEvents.onerror = err => console.warn("State stream error", err.message, stateEvents.readyState, err);
+  stateEvents.onerror = err => console.warn("State stream error", "readyState=", stateEvents.readyState, err);
+  {
+    const CADENCE = 500; //ms between moves
+
+    let nextRefreshAt = 0;
+    stateEvents.onmessage = event => {
+      const now = Date.now();
+
+      const runAt = Math.max(now, nextRefreshAt);
+      const delay = runAt - now;
+      nextRefreshAt = runAt + CADENCE;
+
+      const nextState = JSON.parse(event.data);
+
+      setTimeout(() => refresh(nextState), delay);
+    };
+  }
+
 
   function toStateJson(state, actions) {
     const fCard = card => !card ? null : card
@@ -475,156 +478,6 @@
       e: "trick-east"
     }
   };
-
-function staggerMoves(state, actions) {
-  if (staggerMoves.recurring || !state) return false;
-
-  if (!document.getElementById("shouldStaggerMoves").value) return false;
-
-  const prevState = staggerMoves.prevState;
-
-  // First render has no previous state to compare against.
-  if (!prevState) {
-    staggerMoves.prevState = JSON.parse(JSON.stringify(state));
-    return false;
-  }
-
-  const players = ["w", "n", "e"];
-  const clone = obj => JSON.parse(JSON.stringify(obj ?? {}));
-  const card = (obj, p) => obj?.[p] ?? null;
-  const sameCard = (a, b) => (a ?? null) === (b ?? null);
-
-  const beforeCount =
-    wneList(prevState.previousTrick).filter(Boolean).length +
-    wneList(prevState.trick).filter(Boolean).length;
-
-  const afterCount =
-    wneList(state.previousTrick).filter(Boolean).length +
-    wneList(state.trick).filter(Boolean).length;
-
-  // Only stagger forward progress. Normal rendering handles equal/rewind states.
-  if (beforeCount >= afterCount) {
-    staggerMoves.prevState = JSON.parse(JSON.stringify(state));
-    return false;
-  }
-
-  const targetPrevTrick = clone(state.previousTrick);
-  const targetTrick = clone(state.trick);
-
-  let currPrevTrick = clone(prevState.previousTrick);
-  let currTrick = clone(prevState.trick);
-
-  const frames = [];
-
-  function makeFrame(highlightId) {
-    const frame = clone(state);
-
-    frame.previousTrick = clone(currPrevTrick);
-    frame.trick = clone(currTrick);
-
-    frames.push({
-      state: frame,
-      highlightId
-    });
-  }
-
-  function setSlot(prop, pos, value) {
-    const obj = prop === "previousTrick" ? currPrevTrick : currTrick;
-
-    if (value) obj[pos] = value;
-    else delete obj[pos];
-
-    makeFrame(wneToDom[prop][pos]);
-  }
-
-  const previousTrickChanged = players.some(
-    p => !sameCard(card(prevState.previousTrick, p), card(targetPrevTrick, p))
-  );
-
-  const hasTargetPreviousTrick = players.some(p => card(targetPrevTrick, p));
-
-  if (previousTrickChanged && hasTargetPreviousTrick) {
-    for (const p of players) {
-      const next = card(targetPrevTrick, p);
-      if (next && !sameCard(card(currTrick, p), next)) {
-        setSlot("trick", p, next);
-      }
-    }
-
-    currPrevTrick = clone(targetPrevTrick);
-
-    // Clear the whole current trick, including South.
-    for (const p of ["s", ...players]) delete currTrick[p];
-
-    makeFrame("trick-threshold");
-  }
-
-  for (const p of players) {
-    const next = card(targetTrick, p);
-    if (!sameCard(card(currTrick, p), next)) {
-      setSlot("trick", p, next);
-    }
-  }
-
-  if (!frames.length) {
-    staggerMoves.prevState = JSON.parse(JSON.stringify(state));
-    return false;
-  }
-
-  const btn = document.getElementById("nextStaggeredMove");
-  let frameIndex = 0;
-
-  function showFrame(frame) {
-    for (const e of document.querySelectorAll(".highlighted")) {
-      e.classList.remove("highlighted");
-    }
-
-    staggerMoves.recurring = true;
-    updateBoard(frame.state, frameIndex === frames.length - 1 ? actions : []);
-    delete staggerMoves.recurring;
-
-    const el = document.getElementById(frame.highlightId);
-    if (el) el.classList.add("highlighted");
-  }
-
-
-  const triggerNext = () => {
-    showFrame(frames[frameIndex]);
-    frameIndex++;
-
-    if (frameIndex >= frames.length) {
-      btn.style.display = "none";
-      btn.onclick = null;
-
-      for (const e of document.querySelectorAll(".highlighted")) {
-        e.classList.remove("highlighted");
-      }
-
-      // Commit only the real server state after the staged reveal completes.
-      staggerMoves.prevState = JSON.parse(JSON.stringify(state));
-      return;
-    }
-
-    maybeTriggerNextOnInterval();
-  };
-  function maybeTriggerNextOnInterval() {
-    let interval = document.getElementById("intervalStaggerMoves").value;
-    try {
-        interval = parseInt(interval);
-    } catch (err) {
-        interval = -1;
-    }
-    if (interval > 0) {
-        setTimeout(triggerNext, interval);
-    }
-  }
-
-  btn.style.display = "block";
-  btn.onclick = triggerNext;
-  maybeTriggerNextOnInterval();
-
-  return true;
-}
 </script>
 
 </body>
