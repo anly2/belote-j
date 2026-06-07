@@ -179,6 +179,9 @@
        .if-staggerMoves {
          display: none;
        }
+       #trick_and_bids:not(.bidding) #previousTrickWasFromPreviousRound {
+         display: none;
+       }
 
        *:has(#shouldStaggerMoves:checked) .if-staggerMoves {
          display: inline;
@@ -359,6 +362,7 @@
     document.getElementById("bids-east").innerHTML = formatBids(state.calls?.e);
 
     document.getElementById("winning-trump").innerHTML = formatAction(state.trump) || '';
+    document.getElementById("trick_and_bids").classList.toggle("bidding", !!state.trump);
 
     ["south", "west", "north", "east"].forEach(p => document.getElementById("bids-" + p).classList.remove("winning-trump"));
     if (state.trump) {
@@ -397,7 +401,7 @@
       Promise.all([
         (state ? Promise.resolve(state) : fetch("/" + player + "/state").then(r => r.json()))
           .then(async s => {
-             if (!s.previousTrick || !Object.keys(s.previousTrick).length) {
+             if (!s.trump && (s.gameScore?.us > 0 || s.gameScore?.them > 0) && (!s.previousTrick || !Object.keys(s.previousTrick).length)) {
                  s.previousTrick = await fetch("/" + player + "/previous-round-last-trick").then(r2 => r2.json());
                  s.previousTrickWasFromPreviousRound = true;
              }
