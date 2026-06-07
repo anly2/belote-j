@@ -1,0 +1,7 @@
+micronaut:
+  router:
+    static-resources:
+      game:
+        paths: file:src/main/resources/static
+        mapping: /ui/**
+        welcome-file: game-view.html
