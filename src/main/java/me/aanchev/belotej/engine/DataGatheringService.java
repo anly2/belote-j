@@ -7,7 +7,6 @@ import io.micronaut.serde.annotation.Serdeable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.aanchev.belotej.domain.GameAction;
-import me.aanchev.belotej.domain.PlayerState;
 import me.aanchev.belotej.domain.RelPlayer;
 import me.aanchev.belotej.domain.WNES;
 import org.springframework.stereotype.Service;
@@ -73,6 +72,8 @@ public class DataGatheringService {
     protected Object captureEvent(GameState gameState, RelPlayer player, GameAction action) {
         var now = nowFormatter.format(LocalDateTime.now());
 
+        var seed = gameState.getSeed();
+
         var playerState = getPlayerState(gameState, player);
         playerState.setPreviousTrick(null);
         playerState.setScore(null);
@@ -84,6 +85,7 @@ public class DataGatheringService {
 
         return new CapturedEvent(
                 now,
+                seed,
                 playerState,
                 history,
                 playable,
@@ -93,11 +95,12 @@ public class DataGatheringService {
 
     @Serdeable
     private record CapturedEvent(
-        String when,
-        PlayerState playerState,
-        WNES<List<GameAction>> history,
-        List<GameAction> playable,
-        GameAction action
+        Object when,
+        Object seed,
+        Object playerState,
+        Object history,
+        Object playable,
+        Object action
     ) {}
 
 
