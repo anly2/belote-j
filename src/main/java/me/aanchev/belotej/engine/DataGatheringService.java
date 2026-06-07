@@ -48,7 +48,7 @@ public class DataGatheringService {
             .appendLiteral(':')
             .appendValue(SECOND_OF_MINUTE, 2)
             .toFormatter();
-    private Map<GameState, WNES<List<GameAction>>> histories = new WeakHashMap<>();
+    private Map<String, WNES<List<GameAction>>> histories = new HashMap<>();
 
 
     public void handleAction(String playerName, GameState gameState, RelPlayer playerPos, GameAction action) {
@@ -59,7 +59,7 @@ public class DataGatheringService {
                 append(playerName, captureEvent(gameState, playerPos, action));
             }
 
-            var history = histories.computeIfAbsent(gameState, k -> new WNES<>(
+            var history = histories.computeIfAbsent(gameState.getGameId(), k -> new WNES<>(
                     new ArrayList<>(10),
                     new ArrayList<>(10),
                     new ArrayList<>(10),
@@ -77,7 +77,7 @@ public class DataGatheringService {
         var playerState = getPlayerState(gameState, player);
         playerState.setPreviousTrick(null);
 
-        var absHistory = histories.get(gameState);
+        var absHistory = histories.get(gameState.getGameId());
         var history = absHistory == null ? null : rotate(absHistory, player.getIndex());
 
         var playable = engine.getValidActions(gameState, player);
