@@ -120,10 +120,10 @@
         }
 
 
-        *:not(:has(>.suit.clubs)) + *:has(>.suit.clubs) ,
-        *:not(:has(>.suit.diamonds)) + *:has(>.suit.diamonds) ,
-        *:not(:has(>.suit.hearts)) + *:has(>.suit.hearts) ,
-        *:not(:has(>.suit.spades)) + *:has(>.suit.spades) {
+        *:is(#hand, #actions) *:not(:has(>.suit.clubs)) + *:has(>.suit.clubs) ,
+        *:is(#hand, #actions) *:not(:has(>.suit.diamonds)) + *:has(>.suit.diamonds) ,
+        *:is(#hand, #actions) *:not(:has(>.suit.hearts)) + *:has(>.suit.hearts) ,
+        *:is(#hand, #actions) *:not(:has(>.suit.spades)) + *:has(>.suit.spades) {
             margin-left: 1em;
         }
         *:has(>.action.pass) ~ *:has(>.suit) {
