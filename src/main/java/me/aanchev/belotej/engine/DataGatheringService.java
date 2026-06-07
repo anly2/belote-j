@@ -76,7 +76,6 @@ public class DataGatheringService {
 
         var playerState = getPlayerState(gameState, player);
         playerState.setPreviousTrick(null);
-        playerState.setScore(null);
 
         var absHistory = histories.get(gameState);
         var history = absHistory == null ? null : rotate(absHistory, player.getIndex());
